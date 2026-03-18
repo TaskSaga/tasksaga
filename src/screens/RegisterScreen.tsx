@@ -11,6 +11,8 @@ import {
 import { useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign } from "@expo/vector-icons";
+import { Alert } from "react-native";
+import { register } from "../api/auth";
 
 type RegisterScreenProps = {
   navigation: any;
@@ -24,7 +26,18 @@ export default function RegisterScreen({
   fontsLoaded,
 }: RegisterScreenProps) {
   const [identifier, setIdentifier] = useState("");
-
+  const onRegister = async () => {
+    if (!identifier) {
+      Alert.alert("Error", "Please enter an email");
+      return;
+    }
+    try {
+      const res = await register({ identifier });
+      navigation.navigate("Verify", { email: identifier });
+    } catch (err: any) {
+      Alert.alert("Error", err.message || "Registration failed");
+    }
+  };
   if (!fontsLoaded) return null;
 
   return (
@@ -57,7 +70,7 @@ export default function RegisterScreen({
               style={[styles.input, { fontFamily: "TaskSaga-Regular" }]}
             />
 
-            <TouchableOpacity style={styles.button}>
+            <TouchableOpacity style={styles.button} onPress={onRegister}>
               <Text
                 style={[styles.buttonText, { fontFamily: "TaskSaga-Bold" }]}
               >
@@ -69,7 +82,7 @@ export default function RegisterScreen({
               or
             </Text>
 
-            <TouchableOpacity style={styles.authbutton}>
+            <TouchableOpacity style={styles.authbutton} onPress={() => Alert.alert("Google Sign Up", "Google Sign Up not implemented")}>
               <AntDesign style={[styles.googleicon]} name="google" />
               <Text
                 style={[styles.authbuttonText, { fontFamily: "TaskSaga-Bold" }]}
@@ -78,7 +91,7 @@ export default function RegisterScreen({
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.authbutton}>
+            <TouchableOpacity style={styles.authbutton} onPress={() => Alert.alert("Apple Sign Up", "Apple Sign Up not implemented")}>
               <AntDesign style={[styles.appleicon]} name="apple" />
               <Text
                 style={[styles.authbuttonText, { fontFamily: "TaskSaga-Bold" }]}
