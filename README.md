@@ -6,36 +6,40 @@ TaskSaga gamifies your daily habits and goals, letting you level up, earn reward
 
 ## Features
 
-- ✅ Track habits, daily tasks, and long-term goals  
-- 🏆 Gain XP and level up as you complete tasks  
-- 🎯 Set challenges and quests for yourself  
-- 💎 Earn rewards and unlock achievements  
-- 📊 Visual stats to monitor your progress  
+- ✅ Track habits, daily tasks, and long-term goals
+- 🏆 Gain XP and level up as you complete tasks
+- 🎯 Set challenges and quests for yourself
+- 💎 Earn rewards and unlock achievements
+- 📊 Visual stats to monitor your progress
 
 ## Tech Stack
 
 - **Backend:** Fastify + TypeScript, Prisma-orm, SQLite/PostgreSQL
 - **Authentication:** JWT, bcrypt
 - **Frontend:** TypeScript + React (Native)
-- **Dev Tools:** Docker  
+- **Dev Tools:** Docker
 
 ## Installation
 
-1. Clone the repo  
-    ```bash
-    git clone https://github.com/TaskSaga/tasksaga.git
-    cd tasksaga
-    ```
+1. Clone the repo
+
+   ```bash
+   git clone https://github.com/TaskSaga/tasksaga.git
+   cd tasksaga
+   ```
 
 2. Install dependencies
-    npm install
-    ```
+   npm install
+
+   ```
+
+   ```
 
 3. Run the app
-    ```bash
-    cd ./TaskSaga
-    npx expo start
-    ```
+   ```bash
+   cd ./TaskSaga
+   npx expo start
+   ```
 
 ## How it Works
 

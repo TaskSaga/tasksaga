@@ -15,7 +15,11 @@ type AppNavigatorProps = {
   fontsLoaded: boolean;
 };
 
-export default function AppNavigator({ token, setToken, fontsLoaded }: AppNavigatorProps) {
+export default function AppNavigator({
+  token,
+  setToken,
+  fontsLoaded,
+}: AppNavigatorProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,7 +38,9 @@ export default function AppNavigator({ token, setToken, fontsLoaded }: AppNaviga
         ) : (
           <>
             <Stack.Screen name="Welcome">
-              {(props) => <WelcomeScreen {...props} fontsLoaded={fontsLoaded} />}
+              {(props) => (
+                <WelcomeScreen {...props} fontsLoaded={fontsLoaded} />
+              )}
             </Stack.Screen>
 
             <Stack.Screen name="Login">
@@ -42,7 +48,13 @@ export default function AppNavigator({ token, setToken, fontsLoaded }: AppNaviga
             </Stack.Screen>
 
             <Stack.Screen name="Register">
-              {(props) => <RegisterScreen {...props} fontsLoaded={fontsLoaded} setToken={setToken} />}
+              {(props) => (
+                <RegisterScreen
+                  {...props}
+                  fontsLoaded={fontsLoaded}
+                  setToken={setToken}
+                />
+              )}
             </Stack.Screen>
 
             <Stack.Screen name="Verify" component={VerifyScreen} />

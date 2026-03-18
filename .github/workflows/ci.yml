@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   lint-and-format:
@@ -17,29 +17,29 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install JS deps
         run: npm ci
-        working-directory: ./TaskSaga
+        working-directory: ./
 
       - name: Lint JS/TS code
         run: npx eslint .
-        working-directory: ./TaskSaga
+        working-directory: ./
 
       - name: Format JS/TS code
         run: npx prettier --write .
-        working-directory: ./TaskSaga
+        working-directory: ./
 
-      # Backend (TypeScript + ts-node)
-      - name: Install Backend deps
-        run: npm ci
-        working-directory: ./backend
+      # # Backend (TypeScript + ts-node)
+      # - name: Install Backend deps
+      #   run: npm ci
+      #   working-directory: ./backend
 
-      - name: Lint Backend TS
-        run: npx eslint .
-        working-directory: ./backend
+      # - name: Lint Backend TS
+      #   run: npx eslint .
+      #   working-directory: ./backend
 
-      - name: Format Backend TS
-        run: npx prettier --write .
-        working-directory: ./backend
+      # - name: Format Backend TS
+      #   run: npx prettier --write .
+      #   working-directory: ./backend

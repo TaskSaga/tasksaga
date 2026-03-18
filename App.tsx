@@ -60,5 +60,7 @@ export default function App() {
     console.warn("Font loading failed, using fallback fonts.");
   }
 
-  return <AppNavigator token={token} setToken={setToken} fontsLoaded={fontsLoaded} />;
+  return (
+    <AppNavigator token={token} setToken={setToken} fontsLoaded={fontsLoaded} />
+  );
 }
