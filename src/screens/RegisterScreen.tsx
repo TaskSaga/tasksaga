@@ -82,7 +82,12 @@ export default function RegisterScreen({
               or
             </Text>
 
-            <TouchableOpacity style={styles.authbutton} onPress={() => Alert.alert("Google Sign Up", "Google Sign Up not implemented")}>
+            <TouchableOpacity
+              style={styles.authbutton}
+              onPress={() =>
+                Alert.alert("Google Sign Up", "Google Sign Up not implemented")
+              }
+            >
               <AntDesign style={[styles.googleicon]} name="google" />
               <Text
                 style={[styles.authbuttonText, { fontFamily: "TaskSaga-Bold" }]}
@@ -91,7 +96,12 @@ export default function RegisterScreen({
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.authbutton} onPress={() => Alert.alert("Apple Sign Up", "Apple Sign Up not implemented")}>
+            <TouchableOpacity
+              style={styles.authbutton}
+              onPress={() =>
+                Alert.alert("Apple Sign Up", "Apple Sign Up not implemented")
+              }
+            >
               <AntDesign style={[styles.appleicon]} name="apple" />
               <Text
                 style={[styles.authbuttonText, { fontFamily: "TaskSaga-Bold" }]}
