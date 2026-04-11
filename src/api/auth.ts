@@ -54,6 +54,20 @@ export const googleLogin = async (id_token: string) => {
   }
 };
 
+export const appleLogin = async (id_token: string) => {
+  try {
+    const res = await fetch(`${API_URL}/login/apple`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id_token }),
+    });
+    return handleResponse(res);
+  } catch (err) {
+    console.log("Apple login error:", err);
+    throw err;
+  }
+};
+
 export const verifyEmail = async (data: any) => {
   try {
     const res = await fetch(`${API_URL}/verify`, {

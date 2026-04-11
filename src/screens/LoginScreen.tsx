@@ -8,14 +8,17 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  TouchableOpacity,
 } from "react-native";
 import { useState, useEffect } from "react";
-import { login, googleLogin } from "../api/auth";
+import { login, googleLogin, appleLogin } from "../api/auth";
 import { saveToken } from "../auth/storage";
 import * as Google from "expo-auth-session/providers/google";
 import * as AuthSession from "expo-auth-session";
+import * as AppleAuthentication from "expo-apple-authentication";
 import { ParamListBase } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { AntDesign } from "@expo/vector-icons";
 
 type LoginScreenProps = NativeStackScreenProps<ParamListBase, "Login"> & {
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
@@ -27,6 +30,17 @@ export default function LoginScreen({
 }: LoginScreenProps) {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [appleAuthAvailable, setAppleAuthAvailable] = useState(false);
+
+  useEffect(() => {
+    const checkAppleAuth = async () => {
+      const isAvailable = await AppleAuthentication.isAvailableAsync();
+      setAppleAuthAvailable(isAvailable);
+    };
+    if (Platform.OS === "ios") {
+      checkAppleAuth();
+    }
+  }, []);
 
   const redirectUri = AuthSession.makeRedirectUri({ scheme: "tasksaga" });
 
@@ -95,18 +109,33 @@ export default function LoginScreen({
     }
   };
 
-  // const handleGooglePress = async () => {
-  //   if (Platform.OS === "web") {
-  //     const clientId = "477138754514-3qdjvqvgkcnffrfjcbok00ttrnpcefi4.apps.googleusercontent.com";
-  //     const redirect = encodeURIComponent(redirectUri);
-  //     const scope = encodeURIComponent("openid profile email");
-  //     const nonce = "randomnonce123";
-  //       const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirect}&response_type=id_token&scope=${scope}&nonce=${nonce}`;
-  //     window.location.href = url;
-  //   } else {
-  //     await promptAsync();
-  //   }
-  // };
+  const onApplePress = async () => {
+    try {
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      if (credential.identityToken) {
+        const res = await appleLogin(credential.identityToken);
+        if (res.access_token) {
+          await saveToken(res.access_token);
+          setToken(res.access_token);
+          navigation.reset({ index: 0, routes: [{ name: "Home" }] });
+        } else {
+          Alert.alert("Error", res.detail ?? "Apple login failed");
+        }
+      }
+    } catch (e: any) {
+      if (e.code === "ERR_CANCELED") {
+        // User canceled, do nothing
+      } else {
+        Alert.alert("Error", e.message || "An error occurred during Apple Sign In");
+      }
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -142,7 +171,15 @@ export default function LoginScreen({
 
         <View style={{ height: 20 }} />
 
-        {/* <Button title="Login with Google" onPress={handleGooglePress} disabled={!request} /> */}
+        {appleAuthAvailable && (
+          <AppleAuthentication.AppleAuthenticationButton
+            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+            cornerRadius={8}
+            style={styles.appleButton}
+            onPress={onApplePress}
+          />
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -171,4 +208,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   buttonContainer: { marginTop: 10 },
+  appleButton: {
+    width: "100%",
+    height: 44,
+  },
 });

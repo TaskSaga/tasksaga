@@ -7,22 +7,67 @@ import {
   ScrollView,
   TextInput,
   Platform,
+  Alert,
 } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign } from "@expo/vector-icons";
+import * as AppleAuthentication from "expo-apple-authentication";
+import { appleLogin } from "../api/auth";
+import { saveToken } from "../auth/storage";
 
 type WelcomeScreenProps = {
   navigation: any;
   route: unknown;
   fontsLoaded: boolean;
+  setToken: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 export default function WelcomeScreen({
   navigation,
   fontsLoaded,
+  setToken,
 }: WelcomeScreenProps) {
   const [identifier, setIdentifier] = useState("");
+  const [appleAuthAvailable, setAppleAuthAvailable] = useState(false);
+
+  useEffect(() => {
+    const checkAppleAuth = async () => {
+      const isAvailable = await AppleAuthentication.isAvailableAsync();
+      setAppleAuthAvailable(isAvailable);
+    };
+    if (Platform.OS === "ios") {
+      checkAppleAuth();
+    }
+  }, []);
+
+  const onApplePress = async () => {
+    try {
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      if (credential.identityToken) {
+        const res = await appleLogin(credential.identityToken);
+        if (res.access_token) {
+          await saveToken(res.access_token);
+          setToken(res.access_token);
+          // Navigation happens automatically in App.tsx when token is set
+        } else {
+          Alert.alert("Error", res.detail ?? "Apple login failed");
+        }
+      }
+    } catch (e: any) {
+      if (e.code === "ERR_CANCELED") {
+        // User canceled, do nothing
+      } else {
+        Alert.alert("Error", e.message || "An error occurred during Apple Sign In");
+      }
+    }
+  };
 
   if (!fontsLoaded) return null;
 
@@ -75,14 +120,22 @@ export default function WelcomeScreen({
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.authbutton}>
-              <AntDesign style={[styles.appleicon]} name="apple" />
-              <Text
-                style={[styles.authbuttonText, { fontFamily: "TaskSaga-Bold" }]}
+            {appleAuthAvailable && (
+              <TouchableOpacity
+                style={styles.authbutton}
+                onPress={onApplePress}
               >
-                Continue with Apple
-              </Text>
-            </TouchableOpacity>
+                <AntDesign style={[styles.appleicon]} name="apple" />
+                <Text
+                  style={[
+                    styles.authbuttonText,
+                    { fontFamily: "TaskSaga-Bold" },
+                  ]}
+                >
+                  Continue with Apple
+                </Text>
+              </TouchableOpacity>
+            )}
 
             <Text
               style={[styles.preSignUpText, { fontFamily: "TaskSaga-Regular" }]}

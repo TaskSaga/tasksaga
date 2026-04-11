@@ -39,7 +39,11 @@ export default function AppNavigator({
           <>
             <Stack.Screen name="Welcome">
               {(props) => (
-                <WelcomeScreen {...props} fontsLoaded={fontsLoaded} />
+                <WelcomeScreen
+                  {...props}
+                  fontsLoaded={fontsLoaded}
+                  setToken={setToken}
+                />
               )}
             </Stack.Screen>
 
