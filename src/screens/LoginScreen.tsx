@@ -132,7 +132,10 @@ export default function LoginScreen({
       if (e.code === "ERR_CANCELED") {
         // User canceled, do nothing
       } else {
-        Alert.alert("Error", e.message || "An error occurred during Apple Sign In");
+        Alert.alert(
+          "Error",
+          e.message || "An error occurred during Apple Sign In",
+        );
       }
     }
   };
@@ -173,8 +176,12 @@ export default function LoginScreen({
 
         {appleAuthAvailable && (
           <AppleAuthentication.AppleAuthenticationButton
-            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+            buttonType={
+              AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN
+            }
+            buttonStyle={
+              AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
+            }
             cornerRadius={8}
             style={styles.appleButton}
             onPress={onApplePress}

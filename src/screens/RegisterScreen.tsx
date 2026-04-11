@@ -77,7 +77,10 @@ export default function RegisterScreen({
       if (e.code === "ERR_CANCELED") {
         // User canceled, do nothing
       } else {
-        Alert.alert("Error", e.message || "An error occurred during Apple Sign Up");
+        Alert.alert(
+          "Error",
+          e.message || "An error occurred during Apple Sign Up",
+        );
       }
     }
   };

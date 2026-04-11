@@ -64,7 +64,10 @@ export default function WelcomeScreen({
       if (e.code === "ERR_CANCELED") {
         // User canceled, do nothing
       } else {
-        Alert.alert("Error", e.message || "An error occurred during Apple Sign In");
+        Alert.alert(
+          "Error",
+          e.message || "An error occurred during Apple Sign In",
+        );
       }
     }
   };
