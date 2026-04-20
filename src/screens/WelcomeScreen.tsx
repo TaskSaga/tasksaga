@@ -15,10 +15,10 @@ import { AntDesign } from "@expo/vector-icons";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { appleLogin } from "../api/auth";
 import { saveToken } from "../auth/storage";
+import { ParamListBase } from "@react-navigation/native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
-type WelcomeScreenProps = {
-  navigation: any;
-  route: unknown;
+type WelcomeScreenProps = NativeStackScreenProps<ParamListBase, "Welcome"> & {
   fontsLoaded: boolean;
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
 };
@@ -60,13 +60,14 @@ export default function WelcomeScreen({
           Alert.alert("Error", res.detail ?? "Apple login failed");
         }
       }
-    } catch (e: any) {
-      if (e.code === "ERR_CANCELED") {
+    } catch (e: unknown) {
+      const error = e as { code?: string; message?: string };
+      if (error.code === "ERR_CANCELED") {
         // User canceled, do nothing
       } else {
         Alert.alert(
           "Error",
-          e.message || "An error occurred during Apple Sign In",
+          error.message || "An error occurred during Apple Sign In",
         );
       }
     }

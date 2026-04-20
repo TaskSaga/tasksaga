@@ -16,9 +16,10 @@ import * as AppleAuthentication from "expo-apple-authentication";
 import { register, appleLogin } from "../api/auth";
 import { saveToken } from "../auth/storage";
 
-type RegisterScreenProps = {
-  navigation: any;
-  route: unknown;
+import { ParamListBase } from "@react-navigation/native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+
+type RegisterScreenProps = NativeStackScreenProps<ParamListBase, "Register"> & {
   fontsLoaded: boolean;
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
 };
@@ -47,10 +48,11 @@ export default function RegisterScreen({
       return;
     }
     try {
-      const res = await register({ identifier });
+      const _res = await register({ identifier });
       navigation.navigate("Verify", { email: identifier });
-    } catch (err: any) {
-      Alert.alert("Error", err.message || "Registration failed");
+    } catch (err: unknown) {
+      const error = err as Error;
+      Alert.alert("Error", error.message || "Registration failed");
     }
   };
 
@@ -73,13 +75,14 @@ export default function RegisterScreen({
           Alert.alert("Error", res.detail ?? "Apple registration failed");
         }
       }
-    } catch (e: any) {
-      if (e.code === "ERR_CANCELED") {
+    } catch (e: unknown) {
+      const error = e as { code?: string; message?: string };
+      if (error.code === "ERR_CANCELED") {
         // User canceled, do nothing
       } else {
         Alert.alert(
           "Error",
-          e.message || "An error occurred during Apple Sign Up",
+          error.message || "An error occurred during Apple Sign Up",
         );
       }
     }

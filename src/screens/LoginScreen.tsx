@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  TouchableOpacity,
 } from "react-native";
 import { useState, useEffect } from "react";
 import { login, googleLogin, appleLogin } from "../api/auth";
@@ -18,7 +17,6 @@ import * as AuthSession from "expo-auth-session";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { ParamListBase } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { AntDesign } from "@expo/vector-icons";
 
 type LoginScreenProps = NativeStackScreenProps<ParamListBase, "Login"> & {
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
@@ -44,7 +42,7 @@ export default function LoginScreen({
 
   const redirectUri = AuthSession.makeRedirectUri({ scheme: "tasksaga" });
 
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+  const [_request, response, _promptAsync] = Google.useIdTokenAuthRequest({
     clientId: Platform.select({
       ios: "477138754514-r2juqvhnt4qncov6qdchn2h1m371d2hd.apps.googleusercontent.com",
       android:
@@ -104,8 +102,9 @@ export default function LoginScreen({
       } else {
         Alert.alert("Error", res.detail ?? "Google login failed");
       }
-    } catch (err: any) {
-      Alert.alert("Error", err.message || "Server error");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Server error";
+      Alert.alert("Error", errorMessage);
     }
   };
 
@@ -128,13 +127,14 @@ export default function LoginScreen({
           Alert.alert("Error", res.detail ?? "Apple login failed");
         }
       }
-    } catch (e: any) {
-      if (e.code === "ERR_CANCELED") {
+    } catch (e: unknown) {
+      const error = e as { code?: string; message?: string };
+      if (error.code === "ERR_CANCELED") {
         // User canceled, do nothing
       } else {
         Alert.alert(
           "Error",
-          e.message || "An error occurred during Apple Sign In",
+          error.message || "An error occurred during Apple Sign In",
         );
       }
     }

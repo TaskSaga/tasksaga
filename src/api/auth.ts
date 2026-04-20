@@ -1,18 +1,28 @@
 const API_URL = "http://localhost:8000/auth";
 
-async function handleResponse(res: Response) {
+interface AuthResponse {
+  access_token?: string;
+  refresh_token?: string;
+  detail?: string;
+  message?: string;
+}
+
+async function handleResponse(res: Response): Promise<AuthResponse> {
   const text = await res.text();
   try {
     const json = JSON.parse(text);
     if (!res.ok) throw new Error(json.detail || `Error ${res.status}`);
     return json;
-  } catch {
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith("Error")) throw err;
     if (!res.ok) throw new Error(`Error ${res.status}: ${text}`);
-    return text;
+    return { detail: text };
   }
 }
 
-export const register = async (data: any) => {
+export const register = async (data: {
+  identifier: string;
+}): Promise<AuthResponse> => {
   try {
     const res = await fetch(`${API_URL}/register`, {
       method: "POST",
@@ -26,7 +36,10 @@ export const register = async (data: any) => {
   }
 };
 
-export const login = async (data: any) => {
+export const login = async (data: {
+  identifier: string;
+  password?: string;
+}): Promise<AuthResponse> => {
   try {
     const res = await fetch(`${API_URL}/login`, {
       method: "POST",
@@ -40,7 +53,7 @@ export const login = async (data: any) => {
   }
 };
 
-export const googleLogin = async (id_token: string) => {
+export const googleLogin = async (id_token: string): Promise<AuthResponse> => {
   try {
     const res = await fetch(`${API_URL}/login/google`, {
       method: "POST",
@@ -54,7 +67,7 @@ export const googleLogin = async (id_token: string) => {
   }
 };
 
-export const appleLogin = async (id_token: string) => {
+export const appleLogin = async (id_token: string): Promise<AuthResponse> => {
   try {
     const res = await fetch(`${API_URL}/login/apple`, {
       method: "POST",
@@ -68,7 +81,10 @@ export const appleLogin = async (id_token: string) => {
   }
 };
 
-export const verifyEmail = async (data: any) => {
+export const verifyEmail = async (data: {
+  email: string;
+  code: string;
+}): Promise<AuthResponse> => {
   try {
     const res = await fetch(`${API_URL}/verify`, {
       method: "POST",

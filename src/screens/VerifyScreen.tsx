@@ -11,9 +11,13 @@ import {
   ScrollView,
 } from "react-native";
 import { verifyEmail } from "../api/auth";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { ParamListBase } from "@react-navigation/native";
 
-export default function VerifyScreen({ route, navigation }: any) {
-  const { email } = route.params;
+type VerifyScreenProps = NativeStackScreenProps<ParamListBase, "Verify">;
+
+export default function VerifyScreen({ route, navigation }: VerifyScreenProps) {
+  const { email } = route.params as { email: string };
   const [code, setCode] = useState("");
 
   const onVerify = async () => {
