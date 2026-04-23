@@ -9,15 +9,14 @@ import {
   Platform,
   Alert,
 } from "react-native";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign } from "@expo/vector-icons";
-import * as AppleAuthentication from "expo-apple-authentication";
-import { register, appleLogin } from "../api/auth";
-import { saveToken } from "../auth/storage";
+import { register } from "../api/auth";
 
 import { ParamListBase } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useAppleAuth } from "../hooks/useAppleAuth";
 
 type RegisterScreenProps = NativeStackScreenProps<ParamListBase, "Register"> & {
   fontsLoaded: boolean;
@@ -30,17 +29,7 @@ export default function RegisterScreen({
   setToken,
 }: RegisterScreenProps) {
   const [identifier, setIdentifier] = useState("");
-  const [appleAuthAvailable, setAppleAuthAvailable] = useState(false);
-
-  useEffect(() => {
-    const checkAppleAuth = async () => {
-      const isAvailable = await AppleAuthentication.isAvailableAsync();
-      setAppleAuthAvailable(isAvailable);
-    };
-    if (Platform.OS === "ios") {
-      checkAppleAuth();
-    }
-  }, []);
+  const { isAvailable, handleAppleAuth } = useAppleAuth(setToken);
 
   const onRegister = async () => {
     if (!identifier) {
@@ -53,38 +42,6 @@ export default function RegisterScreen({
     } catch (err: unknown) {
       const error = err as Error;
       Alert.alert("Error", error.message || "Registration failed");
-    }
-  };
-
-  const onApplePress = async () => {
-    try {
-      const credential = await AppleAuthentication.signInAsync({
-        requestedScopes: [
-          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-          AppleAuthentication.AppleAuthenticationScope.EMAIL,
-        ],
-      });
-
-      if (credential.identityToken) {
-        const res = await appleLogin(credential.identityToken);
-        if (res.access_token) {
-          await saveToken(res.access_token);
-          setToken(res.access_token);
-          // Navigation happens automatically in App.tsx when token is set
-        } else {
-          Alert.alert("Error", res.detail ?? "Apple registration failed");
-        }
-      }
-    } catch (e: unknown) {
-      const error = e as { code?: string; message?: string };
-      if (error.code === "ERR_CANCELED") {
-        // User canceled, do nothing
-      } else {
-        Alert.alert(
-          "Error",
-          error.message || "An error occurred during Apple Sign Up",
-        );
-      }
     }
   };
 
@@ -146,10 +103,10 @@ export default function RegisterScreen({
               </Text>
             </TouchableOpacity>
 
-            {appleAuthAvailable && (
+            {isAvailable && (
               <TouchableOpacity
                 style={styles.authbutton}
-                onPress={onApplePress}
+                onPress={handleAppleAuth}
               >
                 <AntDesign style={[styles.appleicon]} name="apple" />
                 <Text

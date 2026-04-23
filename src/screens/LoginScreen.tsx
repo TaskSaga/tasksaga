@@ -1,16 +1,16 @@
 import { Text, Alert, StyleSheet, Platform } from "react-native";
 import { useState, useEffect } from "react";
-import { login, googleLogin, appleLogin } from "../api/auth";
+import { login, googleLogin } from "../api/auth";
 import { saveToken } from "../auth/storage";
 import * as Google from "expo-auth-session/providers/google";
 import * as AuthSession from "expo-auth-session";
-import * as AppleAuthentication from "expo-apple-authentication";
 import { ParamListBase } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import AuthLayout from "../components/AuthLayout";
 import AuthInput from "../components/AuthInput";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { AntDesign } from "@expo/vector-icons";
+import { useAppleAuth } from "../hooks/useAppleAuth";
 
 type LoginScreenProps = NativeStackScreenProps<ParamListBase, "Login"> & {
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
@@ -22,17 +22,7 @@ export default function LoginScreen({
 }: LoginScreenProps) {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [appleAuthAvailable, setAppleAuthAvailable] = useState(false);
-
-  useEffect(() => {
-    const checkAppleAuth = async () => {
-      const isAvailable = await AppleAuthentication.isAvailableAsync();
-      setAppleAuthAvailable(isAvailable);
-    };
-    if (Platform.OS === "ios") {
-      checkAppleAuth();
-    }
-  }, []);
+  const { isAvailable, handleAppleAuth } = useAppleAuth(setToken);
 
   const redirectUri = AuthSession.makeRedirectUri({ scheme: "tasksaga" });
 
@@ -102,38 +92,6 @@ export default function LoginScreen({
     }
   };
 
-  const onApplePress = async () => {
-    try {
-      const credential = await AppleAuthentication.signInAsync({
-        requestedScopes: [
-          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-          AppleAuthentication.AppleAuthenticationScope.EMAIL,
-        ],
-      });
-
-      if (credential.identityToken) {
-        const res = await appleLogin(credential.identityToken);
-        if (res.access_token) {
-          await saveToken(res.access_token);
-          setToken(res.access_token);
-          navigation.reset({ index: 0, routes: [{ name: "Home" }] });
-        } else {
-          Alert.alert("Error", res.detail ?? "Apple login failed");
-        }
-      }
-    } catch (e: unknown) {
-      const error = e as { code?: string; message?: string };
-      if (error.code === "ERR_CANCELED") {
-        // User canceled, do nothing
-      } else {
-        Alert.alert(
-          "Error",
-          error.message || "An error occurred during Apple Sign In",
-        );
-      }
-    }
-  };
-
   return (
     <AuthLayout>
       <Text style={[styles.title, { fontFamily: "TaskSaga-Bold" }]}>
@@ -176,8 +134,8 @@ export default function LoginScreen({
         </Text>
       </TouchableOpacity>
 
-      {appleAuthAvailable && (
-        <TouchableOpacity style={styles.authbutton} onPress={onApplePress}>
+      {isAvailable && (
+        <TouchableOpacity style={styles.authbutton} onPress={handleAppleAuth}>
           <AntDesign style={styles.appleicon} name="apple" />
           <Text
             style={[styles.authbuttonText, { fontFamily: "TaskSaga-Bold" }]}
