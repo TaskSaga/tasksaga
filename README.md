@@ -9,6 +9,7 @@ TaskSaga gamifies your daily habits and goals, letting you level up, earn reward
 ## 🛠️ Tech Stack
 
 ### Mobile App (Frontend)
+
 - **Framework:** [Expo](https://expo.dev/) (React Native)
 - **Language:** [TypeScript](https://www.typescriptlang.org/)
 - **Navigation:** [React Navigation v7](https://reactnavigation.org/)
@@ -16,6 +17,7 @@ TaskSaga gamifies your daily habits and goals, letting you level up, earn reward
 - **Icons:** `@expo/vector-icons` (Ionicons, MaterialIcons)
 
 ### API (Backend)
+
 - **Framework:** [NestJS](https://nestjs.com/) (Node.js)
 - **Database:** [PostgreSQL](https://www.postgresql.org/)
 - **ORM:** [Prisma](https://www.prisma.io/)
@@ -24,6 +26,7 @@ TaskSaga gamifies your daily habits and goals, letting you level up, earn reward
 - **Validation:** `class-validator`, `class-transformer`
 
 ### Infrastructure
+
 - **Containerization:** Docker (for PostgreSQL & Redis)
 - **Environment Management:** `dotenv`
 
@@ -32,17 +35,20 @@ TaskSaga gamifies your daily habits and goals, letting you level up, earn reward
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js (LTS recommended)
 - Docker & Docker Compose
 - Expo Go app (on your mobile device) or an emulator
 
 ### 1. Clone the repository
+
 ```bash
 git clone https://github.com/TaskSaga/tasksaga.git
 cd tasksaga
 ```
 
 ### 2. Setup the Backend (API)
+
 1. Navigate to the `api` directory:
    ```bash
    cd api
@@ -67,6 +73,7 @@ cd tasksaga
    ```
 
 ### 3. Setup the Mobile App
+
 1. Navigate back to the root directory:
    ```bash
    cd ..
@@ -128,4 +135,5 @@ Contributions are what make the open-source community such an amazing place to l
 Distributed under the **0BSD** License. See `package.json` for more information.
 
 ---
-*Level up your habits. Play your life. ⚔️*
+
+_Level up your habits. Play your life. ⚔️_
