@@ -5,7 +5,6 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  TouchableOpacity,
   TextInput,
   KeyboardAvoidingView,
   Platform,
@@ -14,6 +13,8 @@ import { removeToken } from "../auth/storage";
 import LevelIndicator from "../components/LevelIndicator";
 import MentorProfile from "../components/MentorProfile";
 import QuestCard from "../components/QuestCard";
+import { theme } from "../theme";
+import Button from "../components/Button";
 
 type HomeScreenProps = {
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
@@ -48,9 +49,13 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
       >
         <View style={styles.header}>
           <LevelIndicator level={level} xp={xp} maxXp={maxXp} />
-          <TouchableOpacity onPress={onLogout} style={styles.logoutButton}>
-            <Text style={styles.logoutText}>Logout</Text>
-          </TouchableOpacity>
+          <Button
+            title="Logout"
+            variant="ghost"
+            size="sm"
+            onPress={onLogout}
+            textStyle={styles.logoutText}
+          />
         </View>
 
         <ScrollView
@@ -86,11 +91,14 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
           <TextInput
             style={styles.input}
             placeholder="Type your response..."
-            placeholderTextColor="#999"
+            placeholderTextColor={theme.colors.textSecondary}
           />
-          <TouchableOpacity style={styles.sendButton}>
-            <Text style={styles.sendButtonText}>SEND</Text>
-          </TouchableOpacity>
+          <Button
+            title="SEND"
+            size="sm"
+            onPress={() => {}}
+            style={styles.sendButton}
+          />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -100,7 +108,7 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: theme.colors.background,
   },
   container: {
     flex: 1,
@@ -108,67 +116,58 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingRight: 20,
-    backgroundColor: "#FFFFFF",
+    paddingRight: theme.spacing.md,
+    backgroundColor: theme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: "#EEEEEE",
-  },
-  logoutButton: {
-    padding: 8,
+    borderBottomColor: theme.colors.border,
   },
   logoutText: {
-    fontFamily: "TaskSaga-Regular",
-    fontSize: 12,
-    color: "#D32F2F",
+    color: theme.colors.error,
+    fontSize: theme.typography.sizes.tiny,
   },
   scrollContent: {
     flex: 1,
   },
   scrollContainer: {
-    paddingBottom: 20,
+    paddingBottom: theme.spacing.lg,
   },
   messageBubble: {
-    backgroundColor: "#FFFFFF",
-    padding: 16,
-    borderRadius: 12,
-    marginHorizontal: 15,
-    marginVertical: 10,
+    backgroundColor: theme.colors.surface,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+    marginHorizontal: theme.spacing.md,
+    marginVertical: theme.spacing.sm,
     borderWidth: 1,
-    borderColor: "#E0E0E0",
+    borderColor: theme.colors.border,
     alignSelf: "flex-start",
     maxWidth: "85%",
   },
   messageText: {
-    fontFamily: "TaskSaga-Regular",
-    fontSize: 15,
-    color: "#444",
+    fontFamily: theme.typography.fonts.regular,
+    fontSize: theme.typography.sizes.body,
+    color: theme.colors.text,
     lineHeight: 22,
   },
   inputArea: {
     flexDirection: "row",
-    padding: 15,
-    backgroundColor: "#FFFFFF",
+    padding: theme.spacing.md,
+    backgroundColor: theme.colors.surface,
     borderTopWidth: 1,
-    borderTopColor: "#EEEEEE",
+    borderTopColor: theme.colors.border,
     alignItems: "center",
   },
   input: {
     flex: 1,
-    height: 45,
-    backgroundColor: "#F0F2F5",
-    borderRadius: 22,
-    paddingHorizontal: 20,
-    fontFamily: "TaskSaga-Regular",
-    fontSize: 15,
-    color: "#333",
+    height: 48,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.xl,
+    paddingHorizontal: theme.spacing.lg,
+    fontFamily: theme.typography.fonts.regular,
+    fontSize: theme.typography.sizes.body,
+    color: theme.colors.text,
   },
   sendButton: {
-    marginLeft: 12,
-    paddingHorizontal: 15,
-  },
-  sendButtonText: {
-    fontFamily: "TaskSaga-Bold",
-    fontSize: 14,
-    color: "#3F51B5",
+    marginLeft: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
   },
 });

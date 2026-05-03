@@ -7,6 +7,7 @@ import {
   View,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { theme } from "../theme";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -15,7 +16,7 @@ interface AuthLayoutProps {
 export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
     <LinearGradient
-      colors={["#1d033b", "#7300ff", "#1d033b"]}
+      colors={[theme.colors.background, theme.colors.secondary, theme.colors.background]}
       style={styles.gradientContainer}
     >
       <KeyboardAvoidingView
@@ -36,5 +37,9 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
 const styles = StyleSheet.create({
   gradientContainer: { flex: 1 },
   scrollContainer: { flexGrow: 1 },
-  innerContainer: { flex: 1, padding: 24, justifyContent: "center" },
+  innerContainer: { 
+    flex: 1, 
+    padding: theme.spacing.lg, 
+    justifyContent: "center" 
+  },
 });

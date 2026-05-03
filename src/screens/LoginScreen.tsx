@@ -1,4 +1,4 @@
-import { Text, Alert, StyleSheet, Platform } from "react-native";
+import { Text, Alert, StyleSheet, Platform, View } from "react-native";
 import { useState, useEffect } from "react";
 import { login, googleLogin } from "../api/auth";
 import { saveToken } from "../auth/storage";
@@ -7,10 +7,11 @@ import * as AuthSession from "expo-auth-session";
 import { ParamListBase } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import AuthLayout from "../components/AuthLayout";
-import AuthInput from "../components/AuthInput";
-import { TouchableOpacity } from "react-native-gesture-handler";
 import { AntDesign } from "@expo/vector-icons";
 import { useAppleAuth } from "../hooks/useAppleAuth";
+import { theme } from "../theme";
+import Button from "../components/Button";
+import Input from "../components/Input";
 
 type LoginScreenProps = NativeStackScreenProps<ParamListBase, "Login"> & {
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
@@ -94,11 +95,11 @@ export default function LoginScreen({
 
   return (
     <AuthLayout>
-      <Text style={[styles.title, { fontFamily: "TaskSaga-Bold" }]}>
-        Sign In
-      </Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Sign In</Text>
+      </View>
 
-      <AuthInput
+      <Input
         label="Email or username"
         placeholder="name@domain.com"
         value={identifier}
@@ -106,7 +107,7 @@ export default function LoginScreen({
         autoCapitalize="none"
       />
 
-      <AuthInput
+      <Input
         label="Password"
         placeholder="********"
         value={password}
@@ -114,86 +115,87 @@ export default function LoginScreen({
         secureTextEntry
       />
 
-      <TouchableOpacity style={styles.button} onPress={onLogin}>
-        <Text style={[styles.buttonText, { fontFamily: "TaskSaga-Bold" }]}>
-          Login
-        </Text>
-      </TouchableOpacity>
+      <Button
+        title="Login"
+        onPress={onLogin}
+        style={styles.loginButton}
+      />
 
-      <Text style={[styles.orText, { fontFamily: "TaskSaga-Regular" }]}>
-        or
-      </Text>
+      <View style={styles.dividerContainer}>
+        <View style={styles.divider} />
+        <Text style={styles.orText}>or</Text>
+        <View style={styles.divider} />
+      </View>
 
-      <TouchableOpacity
-        style={styles.authbutton}
+      <Button
+        title="Sign In with Google"
+        variant="secondary"
+        icon={<AntDesign name="google" size={20} color={theme.colors.white} />}
         onPress={() => Alert.alert("Notice", "Google login triggered")}
-      >
-        <AntDesign style={styles.googleicon} name="google" />
-        <Text style={[styles.authbuttonText, { fontFamily: "TaskSaga-Bold" }]}>
-          Sign In with Google
-        </Text>
-      </TouchableOpacity>
+        style={styles.socialButton}
+      />
 
       {isAvailable && (
-        <TouchableOpacity style={styles.authbutton} onPress={handleAppleAuth}>
-          <AntDesign style={styles.appleicon} name="apple" />
-          <Text
-            style={[styles.authbuttonText, { fontFamily: "TaskSaga-Bold" }]}
-          >
-            Sign In with Apple
-          </Text>
-        </TouchableOpacity>
+        <Button
+          title="Sign In with Apple"
+          variant="secondary"
+          icon={<AntDesign name="apple" size={20} color={theme.colors.white} />}
+          onPress={handleAppleAuth}
+          style={styles.socialButton}
+        />
       )}
 
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <Text style={[styles.backButtonText, { fontFamily: "TaskSaga-Bold" }]}>
-          Back to Welcome
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.footer}>
+        <Button
+          title="Back to Welcome"
+          variant="ghost"
+          onPress={() => navigation.goBack()}
+          textStyle={styles.backButtonText}
+        />
+      </View>
     </AuthLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  title: {
-    fontSize: 34,
-    color: "#fff",
-    marginBottom: 40,
-    textAlign: "center",
-  },
-  button: {
-    paddingVertical: 12,
-    borderRadius: 20,
+  header: {
     alignItems: "center",
-    backgroundColor: "#340375",
-    marginBottom: 20,
+    marginBottom: theme.spacing.xl,
   },
-  buttonText: { color: "#fff", fontSize: 18 },
-  orText: {
-    color: "#fff",
+  title: {
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: theme.typography.sizes.h1,
+    color: theme.colors.text,
     textAlign: "center",
-    marginBottom: 20,
   },
-  authbutton: {
+  loginButton: {
+    marginTop: theme.spacing.md,
+  },
+  dividerContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    borderRadius: 20,
-    backgroundColor: "#ffffff1a",
-    marginBottom: 15,
-    gap: 10,
+    marginVertical: theme.spacing.lg,
   },
-  authbuttonText: { color: "#fff", fontSize: 18 },
-  googleicon: { fontSize: 20, color: "#ffffff" },
-  appleicon: { fontSize: 20, color: "#ffffff" },
-  backButton: { alignItems: "center", marginTop: 10 },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: theme.colors.border,
+  },
+  orText: {
+    fontFamily: theme.typography.fonts.medium,
+    color: theme.colors.textSecondary,
+    marginHorizontal: theme.spacing.md,
+  },
+  socialButton: {
+    marginBottom: theme.spacing.md,
+  },
+  footer: {
+    marginTop: theme.spacing.xl,
+    alignItems: "center",
+  },
   backButtonText: {
-    color: "#fff",
-    fontSize: 16,
+    fontSize: theme.typography.sizes.body,
+    color: theme.colors.textSecondary,
     textDecorationLine: "underline",
   },
 });

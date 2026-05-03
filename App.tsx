@@ -14,7 +14,10 @@ export default function App() {
 
   const [fontsLoaded, fontError] = useFonts({
     "TaskSaga-Bold": require("./assets/fonts/Montserrat-Bold.ttf"),
+    "TaskSaga-SemiBold": require("./assets/fonts/Montserrat-SemiBold.ttf"),
+    "TaskSaga-Medium": require("./assets/fonts/Montserrat-Medium.ttf"),
     "TaskSaga-Regular": require("./assets/fonts/Montserrat-Regular.ttf"),
+    "TaskSaga-Light": require("./assets/fonts/Montserrat-Light.ttf"),
   });
 
   useEffect(() => {

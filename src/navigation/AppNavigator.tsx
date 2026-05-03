@@ -1,5 +1,6 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { StatusBar } from "expo-status-bar";
 import LoginScreen from "../screens/LoginScreen";
 import WelcomeScreen from "../screens/WelcomeScreen";
 import RegisterScreen from "../screens/RegisterScreen";
@@ -30,6 +31,7 @@ export default function AppNavigator({
 
   return (
     <NavigationContainer>
+      <StatusBar style="light" />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {token ? (
           <Stack.Screen name="Home">

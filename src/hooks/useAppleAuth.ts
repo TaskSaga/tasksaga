@@ -34,11 +34,12 @@ export const useAppleAuth = (
           Alert.alert("Error", res.detail ?? "Apple authentication failed");
         }
       }
-    } catch (e: any) {
-      if (e.code !== "ERR_CANCELED") {
+    } catch (e: unknown) {
+      const error = e as { code?: string; message?: string };
+      if (error.code !== "ERR_CANCELED") {
         Alert.alert(
           "Error",
-          e.message || "An error occurred during Apple Auth",
+          error.message || "An error occurred during Apple Auth",
         );
       }
     }

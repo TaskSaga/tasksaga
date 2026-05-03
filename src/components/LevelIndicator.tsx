@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { theme } from "../theme";
 
 interface LevelIndicatorProps {
   level: number;
@@ -34,41 +35,41 @@ export default function LevelIndicator({
 
 const styles = StyleSheet.create({
   container: {
-    width: "100%",
-    paddingHorizontal: 20,
-    marginVertical: 10,
+    flex: 1,
+    paddingHorizontal: theme.spacing.md,
+    marginVertical: theme.spacing.sm,
   },
   textContainer: {
     flexDirection: "row",
     alignItems: "baseline",
-    marginBottom: 4,
+    marginBottom: 2,
   },
   levelLabel: {
-    fontFamily: "TaskSaga-Bold",
-    fontSize: 12,
-    color: "#666",
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: theme.typography.sizes.tiny,
+    color: theme.colors.textSecondary,
     marginRight: 6,
   },
   levelValue: {
-    fontFamily: "TaskSaga-Bold",
-    fontSize: 24,
-    color: "#333",
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: theme.typography.sizes.h3,
+    color: theme.colors.text,
   },
   progressBackground: {
-    height: 8,
-    backgroundColor: "#E0E0E0",
-    borderRadius: 4,
+    height: 6,
+    backgroundColor: theme.colors.card,
+    borderRadius: 3,
     overflow: "hidden",
   },
   progressForeground: {
     height: "100%",
-    backgroundColor: "#3F51B5", // Default Mage color
-    borderRadius: 4,
+    backgroundColor: theme.colors.primary,
+    borderRadius: 3,
   },
   xpText: {
-    fontFamily: "TaskSaga-Regular",
-    fontSize: 10,
-    color: "#999",
+    fontFamily: theme.typography.fonts.regular,
+    fontSize: theme.typography.sizes.tiny,
+    color: theme.colors.textSecondary,
     textAlign: "right",
     marginTop: 2,
   },
