@@ -115,11 +115,7 @@ export default function LoginScreen({
         secureTextEntry
       />
 
-      <Button
-        title="Login"
-        onPress={onLogin}
-        style={styles.loginButton}
-      />
+      <Button title="Login" onPress={onLogin} style={styles.loginButton} />
 
       <View style={styles.dividerContainer}>
         <View style={styles.divider} />

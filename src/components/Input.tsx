@@ -9,6 +9,11 @@ import {
 } from "react-native";
 import { theme } from "../theme";
 
+type FocusHandler = NonNullable<TextInputProps["onFocus"]>;
+type BlurHandler = NonNullable<TextInputProps["onBlur"]>;
+type FocusEvent = Parameters<FocusHandler>[0];
+type BlurEvent = Parameters<BlurHandler>[0];
+
 interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
@@ -25,14 +30,18 @@ export default function Input({
 }: InputProps) {
   const [isFocused, setIsFocused] = useState(false);
 
-  const handleFocus = (e: any) => {
+  const handleFocus = (e: FocusEvent) => {
     setIsFocused(true);
-    onFocus?.(e);
+    if (onFocus) {
+      onFocus(e);
+    }
   };
 
-  const handleBlur = (e: any) => {
+  const handleBlur = (e: BlurEvent) => {
     setIsFocused(false);
-    onBlur?.(e);
+    if (onBlur) {
+      onBlur(e);
+    }
   };
 
   return (

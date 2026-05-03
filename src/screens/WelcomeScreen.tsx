@@ -1,8 +1,4 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-} from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useState } from "react";
 import { AntDesign } from "@expo/vector-icons";
 import { ParamListBase } from "@react-navigation/native";

@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-  Text,
-  Alert,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Text, Alert, StyleSheet, View } from "react-native";
 import { verifyEmail } from "../api/auth";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ParamListBase } from "@react-navigation/native";
@@ -39,9 +34,7 @@ export default function VerifyScreen({ route, navigation }: VerifyScreenProps) {
     <AuthLayout>
       <View style={styles.header}>
         <Text style={styles.title}>Check your email</Text>
-        <Text style={styles.subtitle}>
-          We’ve sent a verification code to
-        </Text>
+        <Text style={styles.subtitle}>We’ve sent a verification code to</Text>
         <Text style={styles.email}>{email}</Text>
       </View>
 
@@ -55,11 +48,7 @@ export default function VerifyScreen({ route, navigation }: VerifyScreenProps) {
         style={styles.input}
       />
 
-      <Button
-        title="Verify"
-        onPress={onVerify}
-        style={styles.verifyButton}
-      />
+      <Button title="Verify" onPress={onVerify} style={styles.verifyButton} />
 
       <View style={styles.footer}>
         <Button

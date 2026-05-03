@@ -1,9 +1,4 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  Alert,
-} from "react-native";
+import { View, Text, StyleSheet, Alert } from "react-native";
 import { useState } from "react";
 import { AntDesign } from "@expo/vector-icons";
 import { register } from "../api/auth";
@@ -59,11 +54,7 @@ export default function RegisterScreen({
         autoCapitalize="none"
       />
 
-      <Button
-        title="Next"
-        onPress={onRegister}
-        style={styles.nextButton}
-      />
+      <Button title="Next" onPress={onRegister} style={styles.nextButton} />
 
       <View style={styles.dividerContainer}>
         <View style={styles.divider} />
@@ -75,7 +66,9 @@ export default function RegisterScreen({
         title="Sign Up with Google"
         variant="secondary"
         icon={<AntDesign name="google" size={20} color={theme.colors.white} />}
-        onPress={() => Alert.alert("Google Sign Up", "Google Sign Up not implemented")}
+        onPress={() =>
+          Alert.alert("Google Sign Up", "Google Sign Up not implemented")
+        }
         style={styles.socialButton}
       />
 
