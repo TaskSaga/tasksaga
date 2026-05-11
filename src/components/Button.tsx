@@ -50,7 +50,7 @@ export default function Button({
       case "ghost":
         return {
           container: { backgroundColor: "transparent" },
-          text: { color: theme.colors.text },
+          text: { color: theme.colors.textSecondary }, // Changed from theme.colors.text
         };
       default:
         return {

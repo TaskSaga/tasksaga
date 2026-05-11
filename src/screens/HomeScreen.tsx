@@ -3,12 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TextInput,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { SafeAreaView as RNCSafeAreaView } from 'react-native-safe-area-context';
 import { removeToken } from "../auth/storage";
 import LevelIndicator from "../components/LevelIndicator";
 import MentorProfile from "../components/MentorProfile";
@@ -25,12 +25,23 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
   const [level, setLevel] = useState(5);
   const maxXp = 1000;
 
+  // State to track completion of quests
+  const [quest1Completed, setQuest1Completed] = useState(false);
+  const [quest2Completed, setQuest2Completed] = useState(false);
+
+  // State to track skipped quests
+  const [quest1Skipped, setQuest1Skipped] = useState(false);
+  const [quest2Skipped, setQuest2Skipped] = useState(false);
+
   const onLogout = async () => {
     await removeToken();
     setToken(null);
   };
 
-  const handleCompleteQuest = (reward: number) => {
+  const handleCompleteQuest = (reward: number, questId: number) => {
+    if (questId === 1) setQuest1Completed(true);
+    if (questId === 2) setQuest2Completed(true);
+
     setXp((prev) => {
       const newXp = prev + reward;
       if (newXp >= maxXp) {
@@ -41,8 +52,14 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
     });
   };
 
+  const handleSkipQuest = (questId: number) => {
+    if (questId === 1) setQuest1Skipped(true);
+    if (questId === 2) setQuest2Skipped(true);
+    // Note: QuestCard will now be styled to show it's skipped, not hidden.
+  };
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <RNCSafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.container}
@@ -63,7 +80,9 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
         >
-          <MentorProfile name="Archmage Elara" archetype="Mage" state="idle" />
+          <View style={styles.scrollItem}>
+            <MentorProfile name="Merlin" archetype="Mage" state="idle" />
+          </View>
 
           <View style={styles.messageBubble}>
             <Text style={styles.messageText}>
@@ -72,19 +91,27 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
             </Text>
           </View>
 
-          <QuestCard
-            title="30-Minute Morning Meditation"
-            xpReward={150}
-            onComplete={() => handleCompleteQuest(150)}
-            onSkip={() => {}}
-          />
+          <View style={styles.scrollItem}>
+            <QuestCard
+              title="30-Minute Morning Meditation"
+              xpReward={150}
+              onComplete={() => handleCompleteQuest(150, 1)}
+              onSkip={() => handleSkipQuest(1)}
+              completeButtonDisabled={quest1Completed}
+              isSkipped={quest1Skipped} // Pass the new prop
+            />
+          </View>
 
-          <QuestCard
-            title="Read 20 Pages of a Book"
-            xpReward={100}
-            onComplete={() => handleCompleteQuest(100)}
-            onSkip={() => {}}
-          />
+          <View style={styles.scrollItem}>
+            <QuestCard
+              title="Read 20 Pages of a Book"
+              xpReward={100}
+              onComplete={() => handleCompleteQuest(100, 2)}
+              onSkip={() => handleSkipQuest(2)}
+              completeButtonDisabled={quest2Completed}
+              isSkipped={quest2Skipped} // Pass the new prop
+            />
+          </View>
         </ScrollView>
 
         <View style={styles.inputArea}>
@@ -101,7 +128,7 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
           />
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </RNCSafeAreaView>
   );
 }
 
@@ -141,6 +168,10 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     alignSelf: "flex-start",
     maxWidth: "85%",
+  },
+  scrollItem: {
+    marginTop: theme.spacing.md,
+    marginHorizontal: theme.spacing.md,
   },
   messageText: {
     fontFamily: theme.typography.fonts.regular,

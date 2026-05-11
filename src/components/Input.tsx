@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.fonts.semiBold,
     fontSize: theme.typography.sizes.caption,
     color: theme.colors.text,
-    marginBottom: theme.spacing.xs,
+    marginBottom: theme.spacing.sm,
     marginLeft: 4,
   },
   inputContainer: {
@@ -83,8 +83,8 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.lg,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    paddingHorizontal: theme.spacing.md,
-    height: 56,
+    paddingHorizontal: theme.spacing.lg,
+    height: 60,
     justifyContent: "center",
   },
   inputFocused: {
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.fonts.regular,
     fontSize: theme.typography.sizes.tiny,
     color: theme.colors.error,
-    marginTop: 4,
+    marginTop: theme.spacing.xs,
     marginLeft: 4,
   },
 });

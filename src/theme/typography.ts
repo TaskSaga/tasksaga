@@ -11,6 +11,7 @@ export const typography = {
     h2: 28,
     h3: 24,
     h4: 20,
+    subtitle: 18, // Added new subtitle size
     body: 16,
     caption: 14,
     small: 12,
@@ -21,6 +22,7 @@ export const typography = {
     h2: 34,
     h3: 30,
     h4: 26,
+    subtitle: 26, // Added new subtitle line height
     body: 24,
     caption: 20,
     small: 18,

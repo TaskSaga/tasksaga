@@ -9,6 +9,8 @@ interface QuestCardProps {
   xpReward: number;
   onComplete: () => void;
   onSkip: () => void;
+  completeButtonDisabled?: boolean;
+  isSkipped?: boolean;
 }
 
 export default function QuestCard({
@@ -16,6 +18,8 @@ export default function QuestCard({
   xpReward,
   onComplete,
   onSkip,
+  completeButtonDisabled,
+  isSkipped,
 }: QuestCardProps) {
   return (
     <Card style={styles.container}>
@@ -32,6 +36,7 @@ export default function QuestCard({
           size="sm"
           onPress={onComplete}
           style={styles.completeButton}
+          disabled={completeButtonDisabled} // Use the new prop to disable the button
         />
         <Button
           title="SKIP"
