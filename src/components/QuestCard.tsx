@@ -19,23 +19,24 @@ export default function QuestCard({
   onComplete,
   onSkip,
   completeButtonDisabled,
+  isSkipped,
 }: QuestCardProps) {
   return (
-    <Card style={styles.container}>
+    <Card style={[styles.container, isSkipped ? styles.skippedContainer : undefined]}>
       <View style={styles.header}>
         <Text style={styles.questType}>DAILY QUEST</Text>
         <View style={styles.xpBadge}>
           <Text style={styles.xpReward}>+{xpReward} XP</Text>
         </View>
       </View>
-      <Text style={styles.title}>{title}</Text>
+      <Text style={[styles.title, isSkipped ? styles.skippedTitle : undefined]}>{title}</Text>
       <View style={styles.actions}>
         <Button
           title="COMPLETE"
           size="sm"
           onPress={onComplete}
           style={styles.completeButton}
-          disabled={completeButtonDisabled} // Use the new prop to disable the button
+          disabled={completeButtonDisabled || isSkipped}
         />
         <Button
           title="SKIP"
@@ -43,6 +44,7 @@ export default function QuestCard({
           size="sm"
           onPress={onSkip}
           textStyle={styles.skipButtonText}
+          disabled={isSkipped}
         />
       </View>
     </Card>
@@ -52,6 +54,9 @@ export default function QuestCard({
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: theme.spacing.md,
+  },
+  skippedContainer: {
+    opacity: 0.6,
   },
   header: {
     flexDirection: "row",
@@ -81,6 +86,10 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.body,
     color: theme.colors.text,
     marginBottom: theme.spacing.md,
+  },
+  skippedTitle: {
+    textDecorationLine: "line-through",
+    color: theme.colors.textSecondary,
   },
   actions: {
     flexDirection: "row",

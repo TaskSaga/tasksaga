@@ -1,4 +1,4 @@
-import { Text, Alert, StyleSheet, Platform, View } from "react-native";
+import { Text, StyleSheet, Platform, View } from "react-native";
 import { useState, useEffect } from "react";
 import { login, googleLogin } from "../api/auth";
 import { saveToken } from "../auth/storage";
@@ -23,6 +23,7 @@ export default function LoginScreen({
 }: LoginScreenProps) {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const { isAvailable, handleAppleAuth } = useAppleAuth(setToken);
 
   const redirectUri = AuthSession.makeRedirectUri({ scheme: "tasksaga" });
@@ -63,6 +64,7 @@ export default function LoginScreen({
   }, []);
 
   const onLogin = async () => {
+    setError("");
     try {
       const res = await login({ identifier, password });
       if (res.access_token) {
@@ -70,10 +72,10 @@ export default function LoginScreen({
         setToken(res.access_token);
         navigation.reset({ index: 0, routes: [{ name: "Home" }] });
       } else {
-        Alert.alert("Error", res.detail ?? "Login failed");
+        setError(res.detail ?? "Login failed");
       }
     } catch {
-      Alert.alert("Error", "Invalid credentials");
+      setError("Invalid credentials");
     }
   };
 
@@ -85,12 +87,16 @@ export default function LoginScreen({
         setToken(res.access_token);
         navigation.reset({ index: 0, routes: [{ name: "Home" }] });
       } else {
-        Alert.alert("Error", res.detail ?? "Google login failed");
+        setError(res.detail ?? "Google login failed");
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Server error";
-      Alert.alert("Error", errorMessage);
+      setError(errorMessage);
     }
+  };
+
+  const clearError = () => {
+    if (error) setError("");
   };
 
   return (
@@ -103,16 +109,24 @@ export default function LoginScreen({
         label="Email or username"
         placeholder="name@domain.com"
         value={identifier}
-        onChangeText={setIdentifier}
+        onChangeText={(text) => {
+          setIdentifier(text);
+          clearError();
+        }}
         autoCapitalize="none"
+        error={error}
       />
 
       <Input
         label="Password"
         placeholder="********"
         value={password}
-        onChangeText={setPassword}
+        onChangeText={(text) => {
+          setPassword(text);
+          clearError();
+        }}
         secureTextEntry
+        error={error}
       />
 
       <Button title="Login" onPress={onLogin} style={styles.loginButton} />
@@ -127,7 +141,7 @@ export default function LoginScreen({
         title="Sign In with Google"
         variant="secondary"
         icon={<AntDesign name="google" size={20} color={theme.colors.white} />}
-        onPress={() => Alert.alert("Notice", "Google login triggered")}
+        onPress={() => setError("Google login triggered")}
         style={styles.socialButton}
       />
 

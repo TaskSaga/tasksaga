@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Alert } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useState } from "react";
 import { AntDesign } from "@expo/vector-icons";
 import { register } from "../api/auth";
@@ -22,19 +22,21 @@ export default function RegisterScreen({
   setToken,
 }: RegisterScreenProps) {
   const [identifier, setIdentifier] = useState("");
+  const [error, setError] = useState("");
   const { isAvailable, handleAppleAuth } = useAppleAuth(setToken);
 
   const onRegister = async () => {
+    setError("");
     if (!identifier) {
-      Alert.alert("Error", "Please enter an email");
+      setError("Please enter an email");
       return;
     }
     try {
-      const _res = await register({ identifier });
+      await register({ identifier });
       navigation.navigate("Verify", { email: identifier });
     } catch (err: unknown) {
       const error = err as Error;
-      Alert.alert("Error", error.message || "Registration failed");
+      setError(error.message || "Registration failed");
     }
   };
 
@@ -49,9 +51,13 @@ export default function RegisterScreen({
       <Input
         label="Email address"
         value={identifier}
-        onChangeText={setIdentifier}
+        onChangeText={(text) => {
+          setIdentifier(text);
+          if (error) setError("");
+        }}
         placeholder="name@domain.com"
         autoCapitalize="none"
+        error={error}
       />
 
       <Button title="Next" onPress={onRegister} style={styles.nextButton} />
@@ -66,9 +72,7 @@ export default function RegisterScreen({
         title="Sign Up with Google"
         variant="secondary"
         icon={<AntDesign name="google" size={20} color={theme.colors.white} />}
-        onPress={() =>
-          Alert.alert("Google Sign Up", "Google Sign Up not implemented")
-        }
+        onPress={() => setError("Google Sign Up not implemented")}
         style={styles.socialButton}
       />
 
