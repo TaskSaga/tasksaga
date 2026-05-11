@@ -23,9 +23,6 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.okhodus.tasksaga"
     },
-    "plugins": [
-      "expo-font",
-      "expo-secure-store"
-    ]
+    "plugins": ["expo-font", "expo-secure-store"]
   }
 }

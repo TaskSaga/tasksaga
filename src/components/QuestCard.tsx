@@ -19,7 +19,6 @@ export default function QuestCard({
   onComplete,
   onSkip,
   completeButtonDisabled,
-  isSkipped,
 }: QuestCardProps) {
   return (
     <Card style={styles.container}>

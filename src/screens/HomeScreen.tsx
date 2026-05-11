@@ -8,7 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { SafeAreaView as RNCSafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView as RNCSafeAreaView } from "react-native-safe-area-context";
 import { removeToken } from "../auth/storage";
 import LevelIndicator from "../components/LevelIndicator";
 import MentorProfile from "../components/MentorProfile";
