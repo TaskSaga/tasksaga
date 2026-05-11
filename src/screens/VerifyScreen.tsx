@@ -1,18 +1,12 @@
 import { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  Alert,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from "react-native";
+import { Text, Alert, StyleSheet, View } from "react-native";
 import { verifyEmail } from "../api/auth";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ParamListBase } from "@react-navigation/native";
+import { theme } from "../theme";
+import Button from "../components/Button";
+import Input from "../components/Input";
+import AuthLayout from "../components/AuthLayout";
 
 type VerifyScreenProps = NativeStackScreenProps<ParamListBase, "Verify">;
 
@@ -37,62 +31,76 @@ export default function VerifyScreen({ route, navigation }: VerifyScreenProps) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Text style={styles.title}>
-          We’ve sent a verification code to your email. Please verify your email
-          address.
-        </Text>
-
+    <AuthLayout>
+      <View style={styles.header}>
+        <Text style={styles.title}>Check your email</Text>
+        <Text style={styles.subtitle}>We’ve sent a verification code to</Text>
         <Text style={styles.email}>{email}</Text>
+      </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Verification code"
-          value={code}
-          onChangeText={setCode}
-          keyboardType="number-pad"
+      <Input
+        label="Verification Code"
+        placeholder="123456"
+        value={code}
+        onChangeText={setCode}
+        keyboardType="number-pad"
+        textAlign="center"
+        style={styles.input}
+      />
+
+      <Button title="Verify" onPress={onVerify} style={styles.verifyButton} />
+
+      <View style={styles.footer}>
+        <Button
+          title="Back to Login"
+          variant="ghost"
+          onPress={() => navigation.navigate("Login")}
+          textStyle={styles.backButtonText}
         />
-
-        <View style={styles.button}>
-          <Button title="Verify" onPress={onVerify} />
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </View>
+    </AuthLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 24,
-    justifyContent: "center",
+  header: {
+    alignItems: "center",
+    marginBottom: theme.spacing.xl,
   },
   title: {
-    fontSize: 22,
-    marginBottom: 8,
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: theme.typography.sizes.h1,
+    color: theme.colors.text,
     textAlign: "center",
-    fontWeight: "600",
+    marginBottom: theme.spacing.sm,
+  },
+  subtitle: {
+    fontFamily: theme.typography.fonts.regular,
+    fontSize: theme.typography.sizes.body,
+    color: theme.colors.textSecondary,
+    textAlign: "center",
   },
   email: {
+    fontFamily: theme.typography.fonts.semiBold,
+    fontSize: theme.typography.sizes.body,
+    color: theme.colors.secondary,
     textAlign: "center",
-    marginBottom: 20,
-    color: "#666",
+    marginTop: 4,
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 6,
-    padding: 12,
-    marginBottom: 16,
+    fontSize: 24,
+    letterSpacing: 8,
   },
-  button: {
-    marginTop: 10,
+  verifyButton: {
+    marginTop: theme.spacing.md,
+  },
+  footer: {
+    marginTop: theme.spacing.xl,
+    alignItems: "center",
+  },
+  backButtonText: {
+    fontSize: theme.typography.sizes.body,
+    color: theme.colors.textSecondary,
+    textDecorationLine: "underline",
   },
 });

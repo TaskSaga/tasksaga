@@ -1,11 +1,16 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+import { theme } from "../theme";
+import Button from "./Button";
+import Card from "./Card";
 
 interface QuestCardProps {
   title: string;
   xpReward: number;
   onComplete: () => void;
   onSkip: () => void;
+  completeButtonDisabled?: boolean;
+  isSkipped?: boolean;
 }
 
 export default function QuestCard({
@@ -13,90 +18,80 @@ export default function QuestCard({
   xpReward,
   onComplete,
   onSkip,
+  completeButtonDisabled,
 }: QuestCardProps) {
   return (
-    <View style={styles.container}>
+    <Card style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.questType}>DAILY QUEST</Text>
-        <Text style={styles.xpReward}>+{xpReward} XP</Text>
+        <View style={styles.xpBadge}>
+          <Text style={styles.xpReward}>+{xpReward} XP</Text>
+        </View>
       </View>
       <Text style={styles.title}>{title}</Text>
       <View style={styles.actions}>
-        <TouchableOpacity
-          style={[styles.button, styles.completeButton]}
+        <Button
+          title="COMPLETE"
+          size="sm"
           onPress={onComplete}
-        >
-          <Text style={styles.buttonText}>COMPLETE</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.skipButton]}
+          style={styles.completeButton}
+          disabled={completeButtonDisabled} // Use the new prop to disable the button
+        />
+        <Button
+          title="SKIP"
+          variant="ghost"
+          size="sm"
           onPress={onSkip}
-        >
-          <Text style={[styles.buttonText, { color: "#666" }]}>SKIP</Text>
-        </TouchableOpacity>
+          textStyle={styles.skipButtonText}
+        />
       </View>
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 10,
-    marginHorizontal: 15,
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 3,
+    marginHorizontal: theme.spacing.md,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 8,
+    alignItems: "center",
+    marginBottom: theme.spacing.sm,
   },
   questType: {
-    fontFamily: "TaskSaga-Bold",
-    fontSize: 10,
-    color: "#3F51B5",
-    letterSpacing: 1,
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: theme.typography.sizes.tiny,
+    color: theme.colors.primary,
+    letterSpacing: 1.5,
+  },
+  xpBadge: {
+    backgroundColor: "#4CAF5022",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
   },
   xpReward: {
-    fontFamily: "TaskSaga-Bold",
-    fontSize: 10,
-    color: "#4CAF50",
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: theme.typography.sizes.tiny,
+    color: theme.colors.success,
   },
   title: {
-    fontFamily: "TaskSaga-Bold",
-    fontSize: 18,
-    color: "#333",
-    marginBottom: 16,
+    fontFamily: theme.typography.fonts.semiBold,
+    fontSize: theme.typography.sizes.body,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.md,
   },
   actions: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    gap: 10,
-  },
-  button: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
-    alignItems: "center",
-    justifyContent: "center",
+    gap: theme.spacing.sm,
   },
   completeButton: {
-    backgroundColor: "#3F51B5",
+    paddingHorizontal: theme.spacing.md,
   },
-  skipButton: {
-    backgroundColor: "#F5F5F5",
-  },
-  buttonText: {
-    fontFamily: "TaskSaga-Bold",
-    fontSize: 12,
-    color: "#FFFFFF",
+  skipButtonText: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.sizes.small,
   },
 });

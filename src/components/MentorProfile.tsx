@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { theme } from "../theme";
 
 const { width } = Dimensions.get("window");
 
@@ -17,11 +18,10 @@ export default function MentorProfile({
   archetype,
   state,
 }: MentorProfileProps) {
-  // Placeholder for real mentor art. This will be replaced with actual assets.
   const mentorColors = {
-    Mage: "#3F51B5",
-    Warrior: "#D32F2F",
-    Cowboy: "#FFA000",
+    Mage: theme.colors.primary,
+    Warrior: theme.colors.error,
+    Cowboy: theme.colors.accent,
   };
 
   return (
@@ -48,46 +48,46 @@ export default function MentorProfile({
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
-    marginVertical: 15,
+    marginVertical: theme.spacing.lg,
   },
   artPlaceholder: {
-    width: width * 0.45,
-    height: width * 0.45,
-    borderRadius: (width * 0.45) / 2,
-    borderWidth: 3,
-    backgroundColor: "#F5F5F5",
+    width: width * 0.4,
+    height: width * 0.4,
+    borderRadius: (width * 0.4) / 2,
+    borderWidth: 2,
+    backgroundColor: theme.colors.surface,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 10,
-    elevation: 5,
+    elevation: 8,
   },
   placeholderIcon: {
     fontSize: 60,
   },
   stateText: {
     position: "absolute",
-    top: 20,
-    fontFamily: "TaskSaga-Bold",
-    fontSize: 10,
-    color: "#999",
+    top: 15,
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: theme.typography.sizes.tiny,
+    color: theme.colors.textSecondary,
     letterSpacing: 1.5,
   },
   textContainer: {
-    marginTop: 10,
+    marginTop: theme.spacing.sm,
     alignItems: "center",
   },
   name: {
-    fontFamily: "TaskSaga-Bold",
-    fontSize: 20,
-    color: "#333",
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: theme.typography.sizes.h4,
+    color: theme.colors.text,
   },
   archetype: {
-    fontFamily: "TaskSaga-Regular",
-    fontSize: 12,
+    fontFamily: theme.typography.fonts.regular,
+    fontSize: theme.typography.sizes.tiny,
     letterSpacing: 2,
   },
 });
