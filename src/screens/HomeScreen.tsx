@@ -7,55 +7,88 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView as RNCSafeAreaView } from "react-native-safe-area-context";
 import { removeToken } from "../auth/storage";
-import LevelIndicator from "../components/LevelIndicator";
+import { AntDesign } from "@expo/vector-icons";
 import MentorProfile from "../components/MentorProfile";
 import QuestCard from "../components/QuestCard";
+import SidebarMenu from "../components/SidebarMenu";
 import { theme } from "../theme";
-import Button from "../components/Button";
 
-type HomeScreenProps = {
+interface HomeScreenProps {
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
-};
+}
+
+interface Quest {
+  id: number;
+  title: string;
+  xpReward: number;
+  status: "pending" | "completed" | "skipped";
+}
 
 export default function HomeScreen({ setToken }: HomeScreenProps) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [message, setMessage] = useState("");
+
+  // User Stats
   const [xp, setXp] = useState(450);
   const [level, setLevel] = useState(5);
   const maxXp = 1000;
+  const [questsCompleted, setQuestsCompleted] = useState(12);
+  const streak = 3;
 
-  // State to track completion of quests
-  const [quest1Completed, setQuest1Completed] = useState(false);
-  const [quest2Completed, setQuest2Completed] = useState(false);
-
-  // State to track skipped quests
-  const [quest1Skipped, setQuest1Skipped] = useState(false);
-  const [quest2Skipped, setQuest2Skipped] = useState(false);
+  // Dynamic Quest List
+  const [quests, setQuests] = useState<Quest[]>([
+    {
+      id: 1,
+      title: "30-Minute Morning Meditation",
+      xpReward: 150,
+      status: "pending",
+    },
+    {
+      id: 2,
+      title: "Read 20 Pages of a Book",
+      xpReward: 100,
+      status: "pending",
+    },
+    {
+      id: 3,
+      title: "Drink 2 Liters of Water",
+      xpReward: 50,
+      status: "pending",
+    },
+  ]);
 
   const onLogout = async () => {
     await removeToken();
     setToken(null);
   };
 
-  const handleCompleteQuest = (reward: number, questId: number) => {
-    if (questId === 1) setQuest1Completed(true);
-    if (questId === 2) setQuest2Completed(true);
+  const handleCompleteQuest = (questId: number, reward: number) => {
+    // Update quest status
+    setQuests((prev) =>
+      prev.map((q) => (q.id === questId ? { ...q, status: "completed" } : q)),
+    );
 
+    setQuestsCompleted((prev) => prev + 1);
+
+    // Calculate level ups
     setXp((prev) => {
       const newXp = prev + reward;
       if (newXp >= maxXp) {
         setLevel((l) => l + 1);
-        return newXp - maxXp;
+        return newXp - maxXp; // Carry over remainder XP
       }
       return newXp;
     });
   };
 
   const handleSkipQuest = (questId: number) => {
-    if (questId === 1) setQuest1Skipped(true);
-    if (questId === 2) setQuest2Skipped(true);
-    // Note: QuestCard will now be styled to show it's skipped, not hidden.
+    setQuests((prev) =>
+      prev.map((q) => (q.id === questId ? { ...q, status: "skipped" } : q)),
+    );
   };
 
   return (
@@ -64,15 +97,17 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.container}
       >
+        {/* Header */}
         <View style={styles.header}>
-          <LevelIndicator level={level} xp={xp} maxXp={maxXp} />
-          <Button
-            title="Logout"
-            variant="ghost"
-            size="sm"
-            onPress={onLogout}
-            textStyle={styles.logoutText}
-          />
+          <View style={styles.spacer} />
+          <Text style={styles.headerTitle}>TaskSaga</Text>
+          <TouchableOpacity
+            style={styles.avatarTrigger}
+            onPress={() => setIsSidebarOpen(true)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.avatarEmoji}>🤠</Text>
+          </TouchableOpacity>
         </View>
 
         <ScrollView
@@ -80,54 +115,76 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.scrollItem}>
+          {/* NPC Mentor Interaction Area */}
+          <View style={styles.mentorSection}>
             <MentorProfile name="Merlin" archetype="Mage" state="idle" />
+            <View style={styles.messageBubble}>
+              <Text style={styles.messageText}>
+                Greetings, Traveler. Today's path is clear. To progress in your
+                journey, you must focus on the task at hand.
+              </Text>
+            </View>
           </View>
 
-          <View style={styles.messageBubble}>
-            <Text style={styles.messageText}>
-              Greetings, Traveler. Today's path is clear. To progress in your
-              journey, you must focus on the task at hand.
+          {/* Quest Board Section */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Quest Board</Text>
+            <Text style={styles.sectionSubtitle}>
+              {quests.filter((q) => q.status === "completed").length}/
+              {quests.length} Completed
             </Text>
           </View>
 
-          <View style={styles.scrollItem}>
-            <QuestCard
-              title="30-Minute Morning Meditation"
-              xpReward={150}
-              onComplete={() => handleCompleteQuest(150, 1)}
-              onSkip={() => handleSkipQuest(1)}
-              completeButtonDisabled={quest1Completed}
-              isSkipped={quest1Skipped} // Pass the new prop
-            />
-          </View>
-
-          <View style={styles.scrollItem}>
-            <QuestCard
-              title="Read 20 Pages of a Book"
-              xpReward={100}
-              onComplete={() => handleCompleteQuest(100, 2)}
-              onSkip={() => handleSkipQuest(2)}
-              completeButtonDisabled={quest2Completed}
-              isSkipped={quest2Skipped} // Pass the new prop
-            />
-          </View>
+          {/* Render Quests Dynamically */}
+          {quests.map((quest) => (
+            <View key={quest.id} style={styles.scrollItem}>
+              <QuestCard
+                title={quest.title}
+                xpReward={quest.xpReward}
+                onComplete={() => handleCompleteQuest(quest.id, quest.xpReward)}
+                onSkip={() => handleSkipQuest(quest.id)}
+                completeButtonDisabled={quest.status === "completed"}
+                isSkipped={quest.status === "skipped"}
+              />
+            </View>
+          ))}
         </ScrollView>
 
+        {/* Chat / Command Input Area */}
         <View style={styles.inputArea}>
           <TextInput
             style={styles.input}
-            placeholder="Type your response..."
+            placeholder="Talk to Merlin..."
             placeholderTextColor={theme.colors.textSecondary}
+            value={message}
+            onChangeText={setMessage}
           />
-          <Button
-            title="SEND"
-            size="sm"
-            onPress={() => {}}
-            style={styles.sendButton}
-          />
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              !message.trim() && styles.sendButtonDisabled,
+            ]}
+            disabled={!message.trim()}
+            activeOpacity={0.7}
+          >
+            <AntDesign name="arrow-up" size={20} color={theme.colors.white} />
+          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Slide-out Sidebar Overlay */}
+      <SidebarMenu
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        onLogout={onLogout}
+        username="Traveler"
+        rank="Novice Adventurer"
+        level={level}
+        xp={xp}
+        maxXp={maxXp}
+        streak={streak}
+        questsCompleted={questsCompleted}
+      />
     </RNCSafeAreaView>
   );
 }
@@ -143,14 +200,34 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingRight: theme.spacing.md,
+    justifyContent: "space-between",
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
     backgroundColor: theme.colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
   },
-  logoutText: {
-    color: theme.colors.error,
-    fontSize: theme.typography.sizes.tiny,
+  spacer: {
+    width: 40,
+  },
+  avatarTrigger: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.background,
+    borderWidth: 2,
+    borderColor: theme.colors.accent,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarEmoji: {
+    fontSize: 18,
+  },
+  headerTitle: {
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: theme.typography.sizes.h4,
+    color: theme.colors.primary,
+    letterSpacing: 1,
   },
   scrollContent: {
     flex: 1,
@@ -158,26 +235,49 @@ const styles = StyleSheet.create({
   scrollContainer: {
     paddingBottom: theme.spacing.lg,
   },
+  mentorSection: {
+    alignItems: "center",
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+    backgroundColor: "#ffffff05", // Slight highlight for the mentor area
+  },
   messageBubble: {
     backgroundColor: theme.colors.surface,
     padding: theme.spacing.md,
     borderRadius: theme.borderRadius.lg,
-    marginHorizontal: theme.spacing.md,
-    marginVertical: theme.spacing.sm,
+    marginHorizontal: theme.spacing.xl,
+    marginTop: -theme.spacing.sm, // Pull it slightly up towards the mentor portrait
     borderWidth: 1,
     borderColor: theme.colors.border,
-    alignSelf: "flex-start",
-    maxWidth: "85%",
-  },
-  scrollItem: {
-    marginTop: theme.spacing.md,
-    marginHorizontal: theme.spacing.md,
   },
   messageText: {
     fontFamily: theme.typography.fonts.regular,
     fontSize: theme.typography.sizes.body,
     color: theme.colors.text,
-    lineHeight: 22,
+    lineHeight: 24,
+    textAlign: "center",
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "baseline",
+    paddingHorizontal: theme.spacing.md,
+    marginTop: theme.spacing.lg,
+    marginBottom: theme.spacing.xs,
+  },
+  sectionTitle: {
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: theme.typography.sizes.h3,
+    color: theme.colors.text,
+  },
+  sectionSubtitle: {
+    fontFamily: theme.typography.fonts.medium,
+    fontSize: theme.typography.sizes.caption,
+    color: theme.colors.accent,
+  },
+  scrollItem: {
+    marginBottom: theme.spacing.sm, // Changed from marginTop to marginBottom for list spacing
   },
   inputArea: {
     flexDirection: "row",
@@ -186,6 +286,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: theme.colors.border,
     alignItems: "center",
+    gap: theme.spacing.sm,
   },
   input: {
     flex: 1,
@@ -198,7 +299,15 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   sendButton: {
-    marginLeft: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.secondary,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  sendButtonDisabled: {
+    backgroundColor: theme.colors.border,
+    opacity: 0.5,
   },
 });
