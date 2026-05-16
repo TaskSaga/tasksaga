@@ -33,7 +33,9 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
 
   // Form State
   const [isFormVisible, setIsFormVisible] = useState(false);
-  const [editingHabit, setEditingHabit] = useState<habitApi.Habit | undefined>();
+  const [editingHabit, setEditingHabit] = useState<
+    habitApi.Habit | undefined
+  >();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // User Stats (Still local for now, as per current design)
