@@ -29,7 +29,7 @@ export default function HabitCard({
           <Text style={styles.habitType}>DAILY HABIT</Text>
           {isCompletedToday && (
             <AntDesign
-              name="checkcircleo"
+              name="check-circle"
               size={14}
               color={theme.colors.success}
               style={styles.checkIcon}

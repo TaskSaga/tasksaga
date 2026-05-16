@@ -7,6 +7,7 @@ import {
   ViewStyle,
   TextStyle,
   TouchableOpacityProps,
+  StyleProp,
 } from "react-native";
 import { theme } from "../theme";
 
@@ -16,7 +17,7 @@ interface ButtonProps extends TouchableOpacityProps {
   size?: "sm" | "md" | "lg";
   loading?: boolean;
   icon?: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   textStyle?: TextStyle;
 }
 
