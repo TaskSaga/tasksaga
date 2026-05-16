@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8000/auth";
+const API_URL = "http://192.168.1.194:8000/auth";
 
 interface AuthResponse {
   access_token?: string;

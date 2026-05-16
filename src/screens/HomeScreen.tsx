@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,88 +8,134 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView as RNCSafeAreaView } from "react-native-safe-area-context";
 import { removeToken } from "../auth/storage";
 import { AntDesign } from "@expo/vector-icons";
 import MentorProfile from "../components/MentorProfile";
-import QuestCard from "../components/QuestCard";
 import SidebarMenu from "../components/SidebarMenu";
+import HabitCard from "../components/HabitCard";
+import HabitForm from "../components/HabitForm";
 import { theme } from "../theme";
+import * as habitApi from "../api/habit";
 
 interface HomeScreenProps {
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
-interface Quest {
-  id: number;
-  title: string;
-  xpReward: number;
-  status: "pending" | "completed" | "skipped";
-}
-
 export default function HomeScreen({ setToken }: HomeScreenProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [message, setMessage] = useState("");
+  const [habits, setHabits] = useState<habitApi.Habit[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // User Stats
+  // Form State
+  const [isFormVisible, setIsFormVisible] = useState(false);
+  const [editingHabit, setEditingHabit] = useState<habitApi.Habit | undefined>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // User Stats (Still local for now, as per current design)
   const [xp, setXp] = useState(450);
   const [level, setLevel] = useState(5);
   const maxXp = 1000;
   const [questsCompleted, setQuestsCompleted] = useState(12);
   const streak = 3;
 
-  // Dynamic Quest List
-  const [quests, setQuests] = useState<Quest[]>([
-    {
-      id: 1,
-      title: "30-Minute Morning Meditation",
-      xpReward: 150,
-      status: "pending",
-    },
-    {
-      id: 2,
-      title: "Read 20 Pages of a Book",
-      xpReward: 100,
-      status: "pending",
-    },
-    {
-      id: 3,
-      title: "Drink 2 Liters of Water",
-      xpReward: 50,
-      status: "pending",
-    },
-  ]);
+  useEffect(() => {
+    fetchHabits();
+  }, []);
+
+  const fetchHabits = async () => {
+    try {
+      const data = await habitApi.getHabits();
+      setHabits(data);
+    } catch (err) {
+      console.error("Failed to fetch habits:", err);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchHabits();
+  };
 
   const onLogout = async () => {
     await removeToken();
     setToken(null);
   };
 
-  const handleCompleteQuest = (questId: number, reward: number) => {
-    // Update quest status
-    setQuests((prev) =>
-      prev.map((q) => (q.id === questId ? { ...q, status: "completed" } : q)),
-    );
+  const handleCheckIn = async (habitId: number, reward: number) => {
+    try {
+      await habitApi.checkInHabit(habitId);
 
-    setQuestsCompleted((prev) => prev + 1);
+      // Update local state for immediate feedback
+      setHabits((prev) =>
+        prev.map((h) =>
+          h.id === habitId ? { ...h, isCompletedToday: true } : h,
+        ),
+      );
 
-    // Calculate level ups
-    setXp((prev) => {
-      const newXp = prev + reward;
-      if (newXp >= maxXp) {
-        setLevel((l) => l + 1);
-        return newXp - maxXp; // Carry over remainder XP
+      setQuestsCompleted((prev) => prev + 1);
+
+      // Calculate level ups
+      setXp((prev) => {
+        const newXp = prev + reward;
+        if (newXp >= maxXp) {
+          setLevel((l) => l + 1);
+          return newXp - maxXp;
+        }
+        return newXp;
+      });
+    } catch (err) {
+      console.error("Failed to check in:", err);
+    }
+  };
+
+  const handleFormSubmit = async (data: {
+    title: string;
+    description?: string;
+    xpReward?: number;
+  }) => {
+    setIsSubmitting(true);
+    try {
+      if (editingHabit) {
+        const updated = await habitApi.updateHabit(editingHabit.id, data);
+        setHabits((prev) =>
+          prev.map((h) => (h.id === editingHabit.id ? updated : h)),
+        );
+      } else {
+        const created = await habitApi.createHabit(data);
+        setHabits((prev) => [...prev, created]);
       }
-      return newXp;
-    });
+      setIsFormVisible(false);
+      setEditingHabit(undefined);
+    } catch (err) {
+      console.error("Failed to save habit:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleSkipQuest = (questId: number) => {
-    setQuests((prev) =>
-      prev.map((q) => (q.id === questId ? { ...q, status: "skipped" } : q)),
-    );
+  const handleEditHabit = (habit: habitApi.Habit) => {
+    setEditingHabit(habit);
+    setIsFormVisible(true);
   };
+
+  const handleArchiveHabit = async (habitId: number) => {
+    try {
+      await habitApi.deleteHabit(habitId);
+      setHabits((prev) => prev.filter((h) => h.id !== habitId));
+    } catch (err) {
+      console.error("Failed to archive habit:", err);
+    }
+  };
+
+  const completedCount = habits.filter((h) => h.isCompletedToday).length;
 
   return (
     <RNCSafeAreaView style={styles.safeArea}>
@@ -114,6 +160,13 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
           style={styles.scrollContent}
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              tintColor={theme.colors.primary}
+            />
+          }
         >
           {/* NPC Mentor Interaction Area */}
           <View style={styles.mentorSection}>
@@ -126,28 +179,47 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
             </View>
           </View>
 
-          {/* Quest Board Section */}
+          {/* Habit Board Section */}
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Quest Board</Text>
-            <Text style={styles.sectionSubtitle}>
-              {quests.filter((q) => q.status === "completed").length}/
-              {quests.length} Completed
-            </Text>
+            <View>
+              <Text style={styles.sectionTitle}>Habit Board</Text>
+              <Text style={styles.sectionSubtitle}>
+                {completedCount}/{habits.length} Completed
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => {
+                setEditingHabit(undefined);
+                setIsFormVisible(true);
+              }}
+            >
+              <AntDesign name="plus" size={20} color={theme.colors.white} />
+              <Text style={styles.addButtonText}>Add Habit</Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Render Quests Dynamically */}
-          {quests.map((quest) => (
-            <View key={quest.id} style={styles.scrollItem}>
-              <QuestCard
-                title={quest.title}
-                xpReward={quest.xpReward}
-                onComplete={() => handleCompleteQuest(quest.id, quest.xpReward)}
-                onSkip={() => handleSkipQuest(quest.id)}
-                completeButtonDisabled={quest.status === "completed"}
-                isSkipped={quest.status === "skipped"}
+          {/* Render Habits Dynamically */}
+          {habits.map((habit) => (
+            <View key={habit.id} style={styles.scrollItem}>
+              <HabitCard
+                title={habit.title}
+                xpReward={habit.xpReward}
+                isCompletedToday={habit.isCompletedToday}
+                onCheckIn={() => handleCheckIn(habit.id, habit.xpReward)}
+                onEdit={() => handleEditHabit(habit)}
+                onArchive={() => handleArchiveHabit(habit.id)}
               />
             </View>
           ))}
+
+          {habits.length === 0 && !isLoading && (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>
+                No active habits. Click "Add Habit" to begin your journey!
+              </Text>
+            </View>
+          )}
         </ScrollView>
 
         {/* Chat / Command Input Area */}
@@ -184,6 +256,18 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
         maxXp={maxXp}
         streak={streak}
         questsCompleted={questsCompleted}
+      />
+
+      {/* Habit Creation/Edit Modal */}
+      <HabitForm
+        isVisible={isFormVisible}
+        onClose={() => {
+          setIsFormVisible(false);
+          setEditingHabit(undefined);
+        }}
+        onSubmit={handleFormSubmit}
+        initialData={editingHabit}
+        isSubmitting={isSubmitting}
       />
     </RNCSafeAreaView>
   );
@@ -240,14 +324,14 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
-    backgroundColor: "#ffffff05", // Slight highlight for the mentor area
+    backgroundColor: "#ffffff05",
   },
   messageBubble: {
     backgroundColor: theme.colors.surface,
     padding: theme.spacing.md,
     borderRadius: theme.borderRadius.lg,
     marginHorizontal: theme.spacing.xl,
-    marginTop: -theme.spacing.sm, // Pull it slightly up towards the mentor portrait
+    marginTop: -theme.spacing.sm,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
@@ -261,10 +345,10 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "baseline",
+    alignItems: "center",
     paddingHorizontal: theme.spacing.md,
     marginTop: theme.spacing.lg,
-    marginBottom: theme.spacing.xs,
+    marginBottom: theme.spacing.sm,
   },
   sectionTitle: {
     fontFamily: theme.typography.fonts.bold,
@@ -276,8 +360,33 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.caption,
     color: theme.colors.accent,
   },
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.md,
+    gap: theme.spacing.xs,
+  },
+  addButtonText: {
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: theme.typography.sizes.caption,
+    color: theme.colors.white,
+  },
   scrollItem: {
-    marginBottom: theme.spacing.sm, // Changed from marginTop to marginBottom for list spacing
+    marginBottom: theme.spacing.sm,
+  },
+  emptyState: {
+    padding: theme.spacing.xl,
+    alignItems: "center",
+    marginTop: theme.spacing.xl,
+  },
+  emptyStateText: {
+    fontFamily: theme.typography.fonts.medium,
+    fontSize: theme.typography.sizes.body,
+    color: theme.colors.textSecondary,
+    textAlign: "center",
   },
   inputArea: {
     flexDirection: "row",
