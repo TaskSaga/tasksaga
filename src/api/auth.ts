@@ -1,11 +1,7 @@
-const API_URL = "http://192.168.1.194:8000/auth";
+import { getToken } from "../auth/storage";
+import { AuthResponse } from "./auth.types";
 
-interface AuthResponse {
-  access_token?: string;
-  refresh_token?: string;
-  detail?: string;
-  message?: string;
-}
+const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.194:8000/auth";
 
 async function handleResponse(res: Response): Promise<AuthResponse> {
   const text = await res.text();
@@ -19,6 +15,22 @@ async function handleResponse(res: Response): Promise<AuthResponse> {
     return { detail: text };
   }
 }
+
+export const getProfile = async () => {
+  const token = await getToken();
+  try {
+    const res = await fetch(`${API_URL}/me`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return handleResponse(res);
+  } catch (err) {
+    console.log("Get profile error:", err);
+    throw err;
+  }
+};
 
 export const register = async (data: {
   identifier: string;

@@ -17,8 +17,10 @@ import MentorProfile from "../components/MentorProfile";
 import SidebarMenu from "../components/SidebarMenu";
 import HabitCard from "../components/HabitCard";
 import HabitForm from "../components/HabitForm";
+import LevelIndicator from "../components/LevelIndicator";
 import { theme } from "../theme";
 import * as habitApi from "../api/habit";
+import * as authApi from "../api/auth";
 
 interface HomeScreenProps {
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
@@ -31,6 +33,13 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // User Stats
+  const [xp, setXp] = useState(450);
+  const [level, setLevel] = useState(5);
+  const maxXp = 1000;
+  const [questsCompleted, setQuestsCompleted] = useState(12);
+  const streak = 3;
+
   // Form State
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [editingHabit, setEditingHabit] = useState<
@@ -38,16 +47,22 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
   >();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // User Stats (Still local for now, as per current design)
-  const [xp, setXp] = useState(450);
-  const [level, setLevel] = useState(5);
-  const maxXp = 1000;
-  const [questsCompleted, setQuestsCompleted] = useState(12);
-  const streak = 3;
-
   useEffect(() => {
     fetchHabits();
+    fetchProfile();
   }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const user = await authApi.getProfile();
+      if (user.currentXp !== undefined) {
+        setXp(user.currentXp);
+        setLevel(user.level);
+      }
+    } catch (err) {
+      console.error("Failed to fetch profile:", err);
+    }
+  };
 
   const fetchHabits = async () => {
     try {
@@ -147,8 +162,7 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
       >
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.spacer} />
-          <Text style={styles.headerTitle}>TaskSaga</Text>
+          <LevelIndicator level={level} xp={xp} maxXp={maxXp} />
           <TouchableOpacity
             style={styles.avatarTrigger}
             onPress={() => setIsSidebarOpen(true)}
