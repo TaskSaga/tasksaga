@@ -55,7 +55,7 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
   const fetchProfile = async () => {
     try {
       const user = await authApi.getProfile();
-      if (user.currentXp !== undefined) {
+      if (user.currentXp !== undefined && user.level !== undefined) {
         setXp(user.currentXp);
         setLevel(user.level);
       }
