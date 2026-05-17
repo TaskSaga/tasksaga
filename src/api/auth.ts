@@ -1,7 +1,8 @@
 import { getToken } from "../auth/storage";
 import { AuthResponse } from "./auth.types";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.194:8000/auth";
+const API_URL =
+  process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.194:8000/auth";
 
 async function handleResponse(res: Response): Promise<AuthResponse> {
   const text = await res.text();
