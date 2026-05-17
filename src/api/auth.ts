@@ -22,6 +22,7 @@ async function handleResponse(res: Response): Promise<AuthResponse> {
 
 export const register = async (data: {
   identifier: string;
+  password: string;
 }): Promise<AuthResponse> => {
   try {
     const res = await fetch(`${API_URL}/register`, {
@@ -38,7 +39,7 @@ export const register = async (data: {
 
 export const login = async (data: {
   identifier: string;
-  password?: string;
+  password: string;
 }): Promise<AuthResponse> => {
   try {
     const res = await fetch(`${API_URL}/login`, {

@@ -22,15 +22,16 @@ export default function RegisterScreen({
   setToken,
 }: RegisterScreenProps) {
   const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
   const { isAvailable, handleAppleAuth } = useAppleAuth(setToken);
 
   const onRegister = async () => {
-    if (!identifier) {
-      Alert.alert("Error", "Please enter an email");
+    if (!identifier || !password) {
+      Alert.alert("Error", "Please enter email and password");
       return;
     }
     try {
-      const _res = await register({ identifier });
+      const _res = await register({ identifier, password });
       navigation.navigate("Verify", { email: identifier });
     } catch (err: unknown) {
       const error = err as Error;
@@ -52,6 +53,14 @@ export default function RegisterScreen({
         onChangeText={setIdentifier}
         placeholder="name@domain.com"
         autoCapitalize="none"
+      />
+
+      <Input
+        label="Password"
+        value={password}
+        onChangeText={setPassword}
+        placeholder="********"
+        secureTextEntry
       />
 
       <Button title="Next" onPress={onRegister} style={styles.nextButton} />
