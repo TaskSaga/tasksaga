@@ -3,15 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import { theme } from "../theme";
 import Button from "./Button";
 import Card from "./Card";
-
-interface QuestCardProps {
-  title: string;
-  xpReward: number;
-  onComplete: () => void;
-  onSkip: () => void;
-  completeButtonDisabled?: boolean;
-  isSkipped?: boolean;
-}
+import { QuestCardProps } from "./types/QuestCard.types";
 
 export default function QuestCard({
   title,

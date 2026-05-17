@@ -4,14 +4,7 @@ import { theme } from "../theme";
 
 const { width } = Dimensions.get("window");
 
-type MentorArchetype = "Mage" | "Warrior" | "Cowboy";
-type MentorState = "idle" | "encouraging" | "disappointed" | "celebrating";
-
-interface MentorProfileProps {
-  name: string;
-  archetype: MentorArchetype;
-  state: MentorState;
-}
+import { MentorProfileProps } from "./types/MentorProfile.types";
 
 export default function MentorProfile({
   name,

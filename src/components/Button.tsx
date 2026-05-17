@@ -4,22 +4,10 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
-  ViewStyle,
-  TextStyle,
-  TouchableOpacityProps,
-  StyleProp,
 } from "react-native";
 import { theme } from "../theme";
 
-interface ButtonProps extends TouchableOpacityProps {
-  title: string;
-  variant?: "primary" | "secondary" | "outline" | "ghost";
-  size?: "sm" | "md" | "lg";
-  loading?: boolean;
-  icon?: React.ReactNode;
-  style?: StyleProp<ViewStyle>;
-  textStyle?: TextStyle;
-}
+import { ButtonProps } from "./types/Button.types";
 
 export default function Button({
   title,

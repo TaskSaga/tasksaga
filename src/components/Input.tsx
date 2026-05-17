@@ -5,7 +5,6 @@ import {
   Text,
   StyleSheet,
   View,
-  ViewStyle,
 } from "react-native";
 import { theme } from "../theme";
 
@@ -14,11 +13,7 @@ type BlurHandler = NonNullable<TextInputProps["onBlur"]>;
 type FocusEvent = Parameters<FocusHandler>[0];
 type BlurEvent = Parameters<BlurHandler>[0];
 
-interface InputProps extends TextInputProps {
-  label?: string;
-  error?: string;
-  containerStyle?: ViewStyle;
-}
+import { InputProps } from "./types/Input.types";
 
 export default function Input({
   label,

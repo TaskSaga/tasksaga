@@ -9,9 +9,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { theme } from "../theme";
 
-interface AuthLayoutProps {
-  children: React.ReactNode;
-}
+import { AuthLayoutProps } from "./types/AuthLayout.types";
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
   return (

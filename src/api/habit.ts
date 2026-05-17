@@ -75,7 +75,7 @@ export const deleteHabit = async (id: number): Promise<Habit> => {
   return handleResponse(res);
 };
 
-export const checkInHabit = async (id: number): Promise<any> => {
+export const checkInHabit = async (id: number): Promise<Habit> => {
   const res = await fetch(`${API_URL}/${id}/check-in`, {
     method: "POST",
     headers: await getAuthHeaders(),

@@ -4,15 +4,7 @@ import { theme } from "../theme";
 import Button from "./Button";
 import Card from "./Card";
 import { AntDesign } from "@expo/vector-icons";
-
-interface HabitCardProps {
-  title: string;
-  xpReward: number;
-  isCompletedToday: boolean;
-  onCheckIn: () => void;
-  onEdit: () => void;
-  onArchive: () => void;
-}
+import { HabitCardProps } from "./types/HabitCard.types";
 
 export default function HabitCard({
   title,

@@ -3,16 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import { theme } from "../theme";
 import LevelIndicator from "./LevelIndicator";
 import Card from "./Card";
-
-interface UserProfileCardProps {
-  username: string;
-  rank: string;
-  level: number;
-  xp: number;
-  maxXp: number;
-  streak: number;
-  questsCompleted: number;
-}
+import { UserProfileCardProps } from "./types/UserProfileCard.types";
 
 export default function UserProfileCard({
   username,

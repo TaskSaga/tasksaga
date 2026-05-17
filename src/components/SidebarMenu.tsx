@@ -11,22 +11,10 @@ import { AntDesign } from "@expo/vector-icons";
 import { theme } from "../theme";
 import UserProfileCard from "./UserProfileCard";
 import Button from "./Button";
+import { SidebarMenuProps } from "./types/SidebarMenu.types";
 
 const { width } = Dimensions.get("window");
 const SIDEBAR_WIDTH = width * 0.85;
-
-interface SidebarMenuProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onLogout: () => void;
-  username: string;
-  rank: string;
-  level: number;
-  xp: number;
-  maxXp: number;
-  streak: number;
-  questsCompleted: number;
-}
 
 export default function SidebarMenu({
   isOpen,

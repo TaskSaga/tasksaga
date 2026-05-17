@@ -1,11 +1,7 @@
 import React from "react";
-import { View, StyleSheet, StyleProp, ViewStyle } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { theme } from "../theme";
-
-interface CardProps {
-  children: React.ReactNode;
-  style?: StyleProp<ViewStyle>;
-}
+import { CardProps } from "./types/Card.types";
 
 export default function Card({ children, style }: CardProps) {
   return <View style={[styles.card, style]}>{children}</View>;

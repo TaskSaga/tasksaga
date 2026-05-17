@@ -13,10 +13,10 @@ import {
 import { SafeAreaView as RNCSafeAreaView } from "react-native-safe-area-context";
 import { removeToken } from "../auth/storage";
 import { AntDesign } from "@expo/vector-icons";
-import MentorProfile from "../components/MentorProfile";
-import SidebarMenu from "../components/SidebarMenu";
-import HabitCard from "../components/HabitCard";
+import MentorChat from "../components/MentorChat";
+import HabitBoard from "../components/HabitBoard";
 import HabitForm from "../components/HabitForm";
+import AdaptiveLayout from "../components/AdaptiveLayout";
 import LevelIndicator from "../components/LevelIndicator";
 import { theme } from "../theme";
 import * as habitApi from "../api/habit";
@@ -152,140 +152,98 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
     }
   };
 
-  const completedCount = habits.filter((h) => h.isCompletedToday).length;
-
   return (
-    <RNCSafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.container}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <LevelIndicator level={level} xp={xp} maxXp={maxXp} />
-          <TouchableOpacity
-            style={styles.avatarTrigger}
-            onPress={() => setIsSidebarOpen(true)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.avatarEmoji}>🤠</Text>
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView
-          style={styles.scrollContent}
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={onRefresh}
-              tintColor={theme.colors.primary}
-            />
-          }
+    <AdaptiveLayout
+      isSidebarOpen={isSidebarOpen}
+      setIsSidebarOpen={setIsSidebarOpen}
+      onLogout={onLogout}
+      username="Traveler"
+      rank="Novice Adventurer"
+      level={level}
+      xp={xp}
+      maxXp={maxXp}
+      streak={streak}
+      questsCompleted={questsCompleted}
+    >
+      <RNCSafeAreaView style={styles.safeArea}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.container}
         >
-          {/* NPC Mentor Interaction Area */}
-          <View style={styles.mentorSection}>
-            <MentorProfile name="Merlin" archetype="Mage" state="idle" />
-            <View style={styles.messageBubble}>
-              <Text style={styles.messageText}>
-                Greetings, Traveler. Today's path is clear. To progress in your
-                journey, you must focus on the task at hand.
-              </Text>
-            </View>
-          </View>
-
-          {/* Habit Board Section */}
-          <View style={styles.sectionHeader}>
-            <View>
-              <Text style={styles.sectionTitle}>Habit Board</Text>
-              <Text style={styles.sectionSubtitle}>
-                {completedCount}/{habits.length} Completed
-              </Text>
-            </View>
+          {/* Header */}
+          <View style={styles.header}>
+            <LevelIndicator level={level} xp={xp} maxXp={maxXp} />
             <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => {
-                setEditingHabit(undefined);
-                setIsFormVisible(true);
-              }}
+              style={styles.avatarTrigger}
+              onPress={() => setIsSidebarOpen(true)}
+              activeOpacity={0.7}
             >
-              <AntDesign name="plus" size={20} color={theme.colors.white} />
-              <Text style={styles.addButtonText}>Add Habit</Text>
+              <Text style={styles.avatarEmoji}>🤠</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Render Habits Dynamically */}
-          {habits.map((habit) => (
-            <View key={habit.id} style={styles.scrollItem}>
-              <HabitCard
-                title={habit.title}
-                xpReward={habit.xpReward}
-                isCompletedToday={habit.isCompletedToday}
-                onCheckIn={() => handleCheckIn(habit.id, habit.xpReward)}
-                onEdit={() => handleEditHabit(habit)}
-                onArchive={() => handleArchiveHabit(habit.id)}
+          <ScrollView
+            style={styles.scrollContent}
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={onRefresh}
+                tintColor={theme.colors.primary}
               />
-            </View>
-          ))}
-
-          {habits.length === 0 && !isLoading && (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>
-                No active habits. Click "Add Habit" to begin your journey!
-              </Text>
-            </View>
-          )}
-        </ScrollView>
-
-        {/* Chat / Command Input Area */}
-        <View style={styles.inputArea}>
-          <TextInput
-            style={styles.input}
-            placeholder="Talk to Merlin..."
-            placeholderTextColor={theme.colors.textSecondary}
-            value={message}
-            onChangeText={setMessage}
-          />
-          <TouchableOpacity
-            style={[
-              styles.sendButton,
-              !message.trim() && styles.sendButtonDisabled,
-            ]}
-            disabled={!message.trim()}
-            activeOpacity={0.7}
+            }
           >
-            <AntDesign name="arrow-up" size={20} color={theme.colors.white} />
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+            <MentorChat message="Greetings, Traveler. Today's path is clear. To progress in your journey, you must focus on the task at hand." />
 
-      {/* Slide-out Sidebar Overlay */}
-      <SidebarMenu
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        onLogout={onLogout}
-        username="Traveler"
-        rank="Novice Adventurer"
-        level={level}
-        xp={xp}
-        maxXp={maxXp}
-        streak={streak}
-        questsCompleted={questsCompleted}
-      />
+            <HabitBoard
+              habits={habits}
+              isLoading={isLoading}
+              onAddHabit={() => {
+                setEditingHabit(undefined);
+                setIsFormVisible(true);
+              }}
+              onCheckIn={handleCheckIn}
+              onEditHabit={handleEditHabit}
+              onArchiveHabit={handleArchiveHabit}
+            />
+          </ScrollView>
 
-      {/* Habit Creation/Edit Modal */}
-      <HabitForm
-        isVisible={isFormVisible}
-        onClose={() => {
-          setIsFormVisible(false);
-          setEditingHabit(undefined);
-        }}
-        onSubmit={handleFormSubmit}
-        initialData={editingHabit}
-        isSubmitting={isSubmitting}
-      />
-    </RNCSafeAreaView>
+          {/* Chat / Command Input Area */}
+          <View style={styles.inputArea}>
+            <TextInput
+              style={styles.input}
+              placeholder="Talk to Merlin..."
+              placeholderTextColor={theme.colors.textSecondary}
+              value={message}
+              onChangeText={setMessage}
+            />
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                !message.trim() && styles.sendButtonDisabled,
+              ]}
+              disabled={!message.trim()}
+              activeOpacity={0.7}
+            >
+              <AntDesign name="arrow-up" size={20} color={theme.colors.white} />
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+
+        {/* Habit Creation/Edit Modal */}
+        <HabitForm
+          isVisible={isFormVisible}
+          onClose={() => {
+            setIsFormVisible(false);
+            setEditingHabit(undefined);
+          }}
+          onSubmit={handleFormSubmit}
+          initialData={editingHabit}
+          isSubmitting={isSubmitting}
+        />
+      </RNCSafeAreaView>
+    </AdaptiveLayout>
   );
 }
 
@@ -334,75 +292,6 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     paddingBottom: theme.spacing.lg,
-  },
-  mentorSection: {
-    alignItems: "center",
-    paddingVertical: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
-    backgroundColor: "#ffffff05",
-  },
-  messageBubble: {
-    backgroundColor: theme.colors.surface,
-    padding: theme.spacing.md,
-    borderRadius: theme.borderRadius.lg,
-    marginHorizontal: theme.spacing.xl,
-    marginTop: -theme.spacing.sm,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  messageText: {
-    fontFamily: theme.typography.fonts.regular,
-    fontSize: theme.typography.sizes.body,
-    color: theme.colors.text,
-    lineHeight: 24,
-    textAlign: "center",
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: theme.spacing.md,
-    marginTop: theme.spacing.lg,
-    marginBottom: theme.spacing.sm,
-  },
-  sectionTitle: {
-    fontFamily: theme.typography.fonts.bold,
-    fontSize: theme.typography.sizes.h3,
-    color: theme.colors.text,
-  },
-  sectionSubtitle: {
-    fontFamily: theme.typography.fonts.medium,
-    fontSize: theme.typography.sizes.caption,
-    color: theme.colors.accent,
-  },
-  addButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.borderRadius.md,
-    gap: theme.spacing.xs,
-  },
-  addButtonText: {
-    fontFamily: theme.typography.fonts.bold,
-    fontSize: theme.typography.sizes.caption,
-    color: theme.colors.white,
-  },
-  scrollItem: {
-    marginBottom: theme.spacing.sm,
-  },
-  emptyState: {
-    padding: theme.spacing.xl,
-    alignItems: "center",
-    marginTop: theme.spacing.xl,
-  },
-  emptyStateText: {
-    fontFamily: theme.typography.fonts.medium,
-    fontSize: theme.typography.sizes.body,
-    color: theme.colors.textSecondary,
-    textAlign: "center",
   },
   inputArea: {
     flexDirection: "row",

@@ -12,20 +12,8 @@ import {
 import { theme } from "../theme";
 import Button from "./Button";
 import Input from "./Input";
-import { Habit } from "../api/habit";
 import { AntDesign } from "@expo/vector-icons";
-
-interface HabitFormProps {
-  isVisible: boolean;
-  onClose: () => void;
-  onSubmit: (data: {
-    title: string;
-    description?: string;
-    xpReward?: number;
-  }) => void;
-  initialData?: Habit;
-  isSubmitting?: boolean;
-}
+import { HabitFormProps } from "./types/HabitForm.types";
 
 export default function HabitForm({
   isVisible,

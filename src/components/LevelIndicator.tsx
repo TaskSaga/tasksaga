@@ -1,12 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { theme } from "../theme";
-
-interface LevelIndicatorProps {
-  level: number;
-  xp: number;
-  maxXp: number;
-}
+import { LevelIndicatorProps } from "./types/LevelIndicator.types";
 
 export default function LevelIndicator({
   level,
