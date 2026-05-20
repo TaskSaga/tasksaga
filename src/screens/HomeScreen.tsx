@@ -12,10 +12,12 @@ import {
 } from "react-native";
 import { SafeAreaView as RNCSafeAreaView } from "react-native-safe-area-context";
 import { removeToken } from "../auth/storage";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 import MentorChat from "../components/MentorChat";
 import HabitBoard from "../components/HabitBoard";
 import HabitForm from "../components/HabitForm";
+import AchievementsModal from "../components/AchievementsModal";
+import { DBUserAchievement } from "../components/types/AchievementsModal.types";
 import AdaptiveLayout from "../components/AdaptiveLayout";
 import LevelIndicator from "../components/LevelIndicator";
 import { theme } from "../theme";
@@ -32,6 +34,10 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
   const [habits, setHabits] = useState<habitApi.Habit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isAchievementsVisible, setIsAchievementsVisible] = useState(false);
+  const [unlockedAchievements, setUnlockedAchievements] = useState<
+    DBUserAchievement[]
+  >([]);
 
   // User Stats
   const [xp, setXp] = useState(450);
@@ -58,6 +64,9 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
       if (user.currentXp !== undefined && user.level !== undefined) {
         setXp(user.currentXp);
         setLevel(user.level);
+      }
+      if (user.achievements !== undefined) {
+        setUnlockedAchievements(user.achievements);
       }
     } catch (err) {
       console.error("Failed to fetch profile:", err);
@@ -99,7 +108,7 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
 
       setQuestsCompleted((prev) => prev + 1);
 
-      // Calculate level ups
+      // Calculate level ups (immediate local feedback)
       setXp((prev) => {
         const newXp = prev + reward;
         if (newXp >= maxXp) {
@@ -108,6 +117,9 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
         }
         return newXp;
       });
+
+      // Synchronize stats and achievements with database source of truth
+      await fetchProfile();
     } catch (err) {
       console.error("Failed to check in:", err);
     }
@@ -173,13 +185,22 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
           {/* Header */}
           <View style={styles.header}>
             <LevelIndicator level={level} xp={xp} maxXp={maxXp} />
-            <TouchableOpacity
-              style={styles.avatarTrigger}
-              onPress={() => setIsSidebarOpen(true)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.avatarEmoji}>🤠</Text>
-            </TouchableOpacity>
+            <View style={styles.headerButtons}>
+              <TouchableOpacity
+                style={styles.trophyButton}
+                onPress={() => setIsAchievementsVisible(true)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="trophy" size={18} color={theme.colors.accent} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.avatarTrigger}
+                onPress={() => setIsSidebarOpen(true)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.avatarEmoji}>🤠</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <ScrollView
@@ -242,6 +263,13 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
           initialData={editingHabit}
           isSubmitting={isSubmitting}
         />
+
+        {/* Achievements Modal */}
+        <AchievementsModal
+          isVisible={isAchievementsVisible}
+          onClose={() => setIsAchievementsVisible(false)}
+          unlockedAchievements={unlockedAchievements}
+        />
       </RNCSafeAreaView>
     </AdaptiveLayout>
   );
@@ -264,6 +292,21 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
+  },
+  headerButtons: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  trophyButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.background,
+    borderWidth: 2,
+    borderColor: theme.colors.accent,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: theme.spacing.sm,
   },
   spacer: {
     width: 40,
