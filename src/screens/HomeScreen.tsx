@@ -9,6 +9,7 @@ import {
   Platform,
   TouchableOpacity,
   RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView as RNCSafeAreaView } from "react-native-safe-area-context";
 import { removeToken } from "../auth/storage";
@@ -16,6 +17,7 @@ import { AntDesign, Ionicons } from "@expo/vector-icons";
 import MentorChat from "../components/MentorChat";
 import HabitBoard from "../components/HabitBoard";
 import HabitForm from "../components/HabitForm";
+import QuestBoard from "../components/QuestBoard";
 import AchievementsModal from "../components/AchievementsModal";
 import { DBUserAchievement } from "../components/types/AchievementsModal.types";
 import AdaptiveLayout from "../components/AdaptiveLayout";
@@ -23,16 +25,20 @@ import LevelIndicator from "../components/LevelIndicator";
 import { theme } from "../theme";
 import * as habitApi from "../api/habit";
 import * as authApi from "../api/auth";
+import * as questApi from "../api/quest";
 
 interface HomeScreenProps {
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
+  navigation: any;
 }
 
-export default function HomeScreen({ setToken }: HomeScreenProps) {
+export default function HomeScreen({ setToken, navigation }: HomeScreenProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [habits, setHabits] = useState<habitApi.Habit[]>([]);
+  const [quests, setQuests] = useState<questApi.Quest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isQuestsLoading, setIsQuestsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isAchievementsVisible, setIsAchievementsVisible] = useState(false);
   const [unlockedAchievements, setUnlockedAchievements] = useState<
@@ -43,7 +49,7 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
   const [xp, setXp] = useState(450);
   const [level, setLevel] = useState(5);
   const maxXp = 1000;
-  const [questsCompleted, setQuestsCompleted] = useState(12);
+  const [questsCompletedCount, setQuestsCompletedCount] = useState(12);
   const streak = 3;
 
   // Form State
@@ -55,6 +61,7 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
 
   useEffect(() => {
     fetchHabits();
+    fetchQuests();
     fetchProfile();
   }, []);
 
@@ -85,14 +92,33 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
     }
   };
 
+  const fetchQuests = async () => {
+    try {
+      const data = await questApi.getQuests();
+      setQuests(data);
+      const completedCount = data.filter(q => q.status === 'COMPLETED').length;
+      setQuestsCompletedCount(completedCount);
+    } catch (err) {
+      console.error("Failed to fetch quests:", err);
+    } finally {
+      setIsQuestsLoading(false);
+    }
+  };
+
   const onRefresh = () => {
     setIsRefreshing(true);
     fetchHabits();
+    fetchQuests();
   };
 
   const onLogout = async () => {
     await removeToken();
     setToken(null);
+  };
+
+  const onViewProfile = () => {
+    setIsSidebarOpen(false);
+    navigation.navigate("Profile");
   };
 
   const handleCheckIn = async (habitId: number, reward: number) => {
@@ -105,8 +131,6 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
           h.id === habitId ? { ...h, isCompletedToday: true } : h,
         ),
       );
-
-      setQuestsCompleted((prev) => prev + 1);
 
       // Calculate level ups (immediate local feedback)
       setXp((prev) => {
@@ -122,6 +146,31 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
       await fetchProfile();
     } catch (err) {
       console.error("Failed to check in:", err);
+    }
+  };
+
+  const handleCompleteQuest = async (id: number) => {
+    try {
+      setIsQuestsLoading(true);
+      await questApi.updateQuest(id, { status: "COMPLETED" });
+      await fetchQuests();
+      await fetchProfile();
+    } catch (err) {
+      console.error("Failed to complete quest:", err);
+    } finally {
+      setIsQuestsLoading(false);
+    }
+  };
+
+  const handleDeleteQuest = async (id: number) => {
+    try {
+      setIsQuestsLoading(true);
+      await questApi.deleteQuest(id);
+      await fetchQuests();
+    } catch (err) {
+      console.error("Failed to delete quest:", err);
+    } finally {
+      setIsQuestsLoading(false);
     }
   };
 
@@ -169,13 +218,14 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
       onLogout={onLogout}
+      onViewProfile={onViewProfile}
       username="Traveler"
       rank="Novice Adventurer"
       level={level}
       xp={xp}
       maxXp={maxXp}
       streak={streak}
-      questsCompleted={questsCompleted}
+      questsCompleted={questsCompletedCount}
     >
       <RNCSafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView
@@ -227,6 +277,22 @@ export default function HomeScreen({ setToken }: HomeScreenProps) {
               onCheckIn={handleCheckIn}
               onEditHabit={handleEditHabit}
               onArchiveHabit={handleArchiveHabit}
+            />
+
+            <QuestBoard
+              quests={quests}
+              isLoading={isQuestsLoading}
+              onAddQuest={() => {
+                // For now, let's just create a dummy quest to test the UI
+                questApi.createQuest({
+                  title: "Slay the Procrastination Dragon",
+                  description: "Complete 3 complex tasks before noon.",
+                  xpReward: 350,
+                  goldReward: 100
+                }).then(() => fetchQuests());
+              }}
+              onCompleteQuest={handleCompleteQuest}
+              onDeleteQuest={handleDeleteQuest}
             />
           </ScrollView>
 
