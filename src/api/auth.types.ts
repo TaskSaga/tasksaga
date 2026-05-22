@@ -7,5 +7,9 @@ export interface AuthResponse {
   message?: string;
   currentXp?: number;
   level?: number;
+  strength?: number;
+  intelligence?: number;
+  dexterity?: number;
+  spirit?: number;
   achievements?: DBUserAchievement[];
 }

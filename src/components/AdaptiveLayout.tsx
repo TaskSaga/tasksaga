@@ -7,6 +7,7 @@ interface AdaptiveLayoutProps {
   isSidebarOpen: boolean;
   setIsSidebarOpen: (isOpen: boolean) => void;
   onLogout: () => void;
+  onViewProfile: () => void;
   children: React.ReactNode;
   // User profile data for Sidebar
   username: string;
@@ -22,6 +23,7 @@ export default function AdaptiveLayout({
   isSidebarOpen,
   setIsSidebarOpen,
   onLogout,
+  onViewProfile,
   children,
   ...sidebarProps
 }: AdaptiveLayoutProps) {
@@ -37,6 +39,7 @@ export default function AdaptiveLayout({
             isOpen={true}
             onClose={() => {}}
             onLogout={onLogout}
+            onViewProfile={onViewProfile}
             {...sidebarProps}
           />
         </View>
@@ -46,6 +49,7 @@ export default function AdaptiveLayout({
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           onLogout={onLogout}
+          onViewProfile={onViewProfile}
           {...sidebarProps}
         />
       )}
