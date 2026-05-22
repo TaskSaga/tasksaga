@@ -25,6 +25,7 @@ import { theme } from "../theme";
 import * as habitApi from "../api/habit";
 import * as authApi from "../api/auth";
 import * as questApi from "../api/quest";
+import * as aiApi from "../api/ai";
 
 interface HomeScreenProps {
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
@@ -36,6 +37,10 @@ interface HomeScreenProps {
 export default function HomeScreen({ setToken, navigation }: HomeScreenProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [message, setMessage] = useState("");
+  const [mentorMessage, setMentorMessage] = useState(
+    "Greetings, Traveler. Let me look into your future...",
+  );
+  const [isMentorLoading, setIsMentorLoading] = useState(true);
   const [habits, setHabits] = useState<habitApi.Habit[]>([]);
   const [quests, setQuests] = useState<questApi.Quest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -64,7 +69,23 @@ export default function HomeScreen({ setToken, navigation }: HomeScreenProps) {
     fetchHabits();
     fetchQuests();
     fetchProfile();
+    fetchMentorAdvice();
   }, []);
+
+  const fetchMentorAdvice = async () => {
+    try {
+      setIsMentorLoading(true);
+      const data = await aiApi.getMentorAdvice();
+      setMentorMessage(data.advice);
+    } catch (err) {
+      console.error("Failed to fetch mentor advice:", err);
+      setMentorMessage(
+        "The mystical mists are thick today, Traveler. Trust in your path and continue your journey.",
+      );
+    } finally {
+      setIsMentorLoading(false);
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -112,6 +133,7 @@ export default function HomeScreen({ setToken, navigation }: HomeScreenProps) {
     setIsRefreshing(true);
     fetchHabits();
     fetchQuests();
+    fetchMentorAdvice();
   };
 
   const onLogout = async () => {
@@ -147,6 +169,8 @@ export default function HomeScreen({ setToken, navigation }: HomeScreenProps) {
 
       // Synchronize stats and achievements with database source of truth
       await fetchProfile();
+      // Optional: Refresh advice after progress
+      fetchMentorAdvice();
     } catch (err) {
       console.error("Failed to check in:", err);
     }
@@ -158,6 +182,7 @@ export default function HomeScreen({ setToken, navigation }: HomeScreenProps) {
       await questApi.updateQuest(id, { status: "COMPLETED" });
       await fetchQuests();
       await fetchProfile();
+      fetchMentorAdvice();
     } catch (err) {
       console.error("Failed to complete quest:", err);
     } finally {
@@ -268,7 +293,7 @@ export default function HomeScreen({ setToken, navigation }: HomeScreenProps) {
               />
             }
           >
-            <MentorChat message="Greetings, Traveler. Today's path is clear. To progress in your journey, you must focus on the task at hand." />
+            <MentorChat message={mentorMessage} isLoading={isMentorLoading} />
 
             <HabitBoard
               habits={habits}

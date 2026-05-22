@@ -1,18 +1,30 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import MentorProfile from "./MentorProfile";
 import { theme } from "../theme";
 
 interface MentorChatProps {
   message: string;
+  isLoading?: boolean;
 }
 
-export default function MentorChat({ message }: MentorChatProps) {
+export default function MentorChat({ message, isLoading }: MentorChatProps) {
   return (
     <View style={styles.mentorSection}>
-      <MentorProfile name="Merlin" archetype="Mage" state="idle" />
+      <MentorProfile
+        name="Merlin"
+        archetype="Mage"
+        state={isLoading ? "thinking" : "idle"}
+      />
       <View style={styles.messageBubble}>
-        <Text style={styles.messageText}>{message}</Text>
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color={theme.colors.accent} />
+            <Text style={styles.loadingText}>Consulting the stars...</Text>
+          </View>
+        ) : (
+          <Text style={styles.messageText}>{message}</Text>
+        )}
       </View>
     </View>
   );
@@ -34,6 +46,8 @@ const styles = StyleSheet.create({
     marginTop: -theme.spacing.sm,
     borderWidth: 1,
     borderColor: theme.colors.border,
+    minHeight: 60,
+    justifyContent: "center",
   },
   messageText: {
     fontFamily: theme.typography.fonts.regular,
@@ -41,5 +55,16 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     lineHeight: 24,
     textAlign: "center",
+  },
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: theme.spacing.sm,
+  },
+  loadingText: {
+    fontFamily: theme.typography.fonts.italic,
+    fontSize: theme.typography.sizes.small,
+    color: theme.colors.textSecondary,
   },
 });
