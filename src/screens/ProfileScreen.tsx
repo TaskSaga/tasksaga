@@ -127,7 +127,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 ]}
               >
                 <MaterialCommunityIcons
-                  name={attr.icon as keyof typeof MaterialCommunityIcons.glyphMap}
+                  name={
+                    attr.icon as keyof typeof MaterialCommunityIcons.glyphMap
+                  }
                   size={24}
                   color={attr.color}
                 />
