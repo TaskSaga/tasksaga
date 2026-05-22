@@ -5,6 +5,8 @@ import {
   Animated,
   TouchableWithoutFeedback,
   Dimensions,
+  TouchableOpacity,
+  Text,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AntDesign } from "@expo/vector-icons";
@@ -20,6 +22,7 @@ export default function SidebarMenu({
   isOpen,
   onClose,
   onLogout,
+  onViewProfile,
   username,
   rank,
   level,
@@ -118,6 +121,20 @@ export default function SidebarMenu({
             streak={streak}
             questsCompleted={questsCompleted}
           />
+
+          <View style={styles.menuItems}>
+            <TouchableOpacity style={styles.menuItem} onPress={onViewProfile}>
+              <View style={styles.menuIcon}>
+                <AntDesign name="user" size={20} color={theme.colors.accent} />
+              </View>
+              <Text style={styles.menuText}>Character Sheet</Text>
+              <AntDesign
+                name="right"
+                size={14}
+                color={theme.colors.textSecondary}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.footer}>
@@ -172,6 +189,35 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  menuItems: {
+    marginTop: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.md,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  menuIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: theme.colors.background,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: theme.spacing.md,
+  },
+  menuText: {
+    flex: 1,
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: theme.typography.sizes.body,
+    color: theme.colors.text,
   },
   footer: {
     padding: theme.spacing.lg,

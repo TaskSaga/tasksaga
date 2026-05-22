@@ -48,7 +48,9 @@ export default function QuestBoard({
         </View>
       ) : quests.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No active quests. Visit the Tavern!</Text>
+          <Text style={styles.emptyText}>
+            No active quests. Visit the Tavern!
+          </Text>
           <TouchableOpacity style={styles.emptyButton} onPress={onAddQuest}>
             <Text style={styles.emptyButtonText}>Post a Bounty</Text>
           </TouchableOpacity>

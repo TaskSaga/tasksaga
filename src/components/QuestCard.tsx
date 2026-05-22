@@ -33,7 +33,11 @@ export default function QuestCard({
         </View>
         {!isCompleted && (
           <TouchableOpacity onPress={() => onDelete(id)} disabled={isLoading}>
-            <Ionicons name="trash-outline" size={18} color={theme.colors.error} />
+            <Ionicons
+              name="trash-outline"
+              size={18}
+              color={theme.colors.error}
+            />
           </TouchableOpacity>
         )}
       </View>
@@ -55,14 +59,22 @@ export default function QuestCard({
           onPress={() => onComplete(id)}
           disabled={isLoading}
         >
-          <MaterialCommunityIcons name="sword" size={18} color={theme.colors.white} />
+          <MaterialCommunityIcons
+            name="sword"
+            size={18}
+            color={theme.colors.white}
+          />
           <Text style={styles.completeButtonText}>EMBARK</Text>
         </TouchableOpacity>
       )}
 
       {isCompleted && (
         <View style={styles.completedBadge}>
-          <Ionicons name="checkmark-circle" size={16} color={theme.colors.success} />
+          <Ionicons
+            name="checkmark-circle"
+            size={16}
+            color={theme.colors.success}
+          />
           <Text style={styles.completedBadgeText}>VICTORY</Text>
         </View>
       )}

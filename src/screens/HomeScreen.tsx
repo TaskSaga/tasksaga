@@ -9,7 +9,6 @@ import {
   Platform,
   TouchableOpacity,
   RefreshControl,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView as RNCSafeAreaView } from "react-native-safe-area-context";
 import { removeToken } from "../auth/storage";
@@ -29,7 +28,9 @@ import * as questApi from "../api/quest";
 
 interface HomeScreenProps {
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
-  navigation: any;
+  navigation: {
+    navigate: (screen: string) => void;
+  };
 }
 
 export default function HomeScreen({ setToken, navigation }: HomeScreenProps) {
@@ -96,7 +97,9 @@ export default function HomeScreen({ setToken, navigation }: HomeScreenProps) {
     try {
       const data = await questApi.getQuests();
       setQuests(data);
-      const completedCount = data.filter(q => q.status === 'COMPLETED').length;
+      const completedCount = data.filter(
+        (q) => q.status === "COMPLETED",
+      ).length;
       setQuestsCompletedCount(completedCount);
     } catch (err) {
       console.error("Failed to fetch quests:", err);
@@ -284,12 +287,14 @@ export default function HomeScreen({ setToken, navigation }: HomeScreenProps) {
               isLoading={isQuestsLoading}
               onAddQuest={() => {
                 // For now, let's just create a dummy quest to test the UI
-                questApi.createQuest({
-                  title: "Slay the Procrastination Dragon",
-                  description: "Complete 3 complex tasks before noon.",
-                  xpReward: 350,
-                  goldReward: 100
-                }).then(() => fetchQuests());
+                questApi
+                  .createQuest({
+                    title: "Slay the Procrastination Dragon",
+                    description: "Complete 3 complex tasks before noon.",
+                    xpReward: 350,
+                    goldReward: 100,
+                  })
+                  .then(() => fetchQuests());
               }}
               onCompleteQuest={handleCompleteQuest}
               onDeleteQuest={handleDeleteQuest}
