@@ -32,6 +32,13 @@ export default function AdaptiveLayout({
 
   return (
     <View style={styles.container}>
+      {/* Main Content Area - Rendered first to be logically at the bottom if absolute siblings exist */}
+      <View
+        style={[styles.mainContent, isLargeScreen && styles.mainContentLarge]}
+      >
+        {children}
+      </View>
+
       {/* For Large Screens, render persistent sidebar */}
       {isLargeScreen ? (
         <View style={styles.sidebarContainer}>
@@ -53,13 +60,6 @@ export default function AdaptiveLayout({
           {...sidebarProps}
         />
       )}
-
-      {/* Main Content Area */}
-      <View
-        style={[styles.mainContent, isLargeScreen && styles.mainContentLarge]}
-      >
-        {children}
-      </View>
     </View>
   );
 }

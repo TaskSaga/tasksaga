@@ -1,5 +1,10 @@
-type MentorArchetype = "Mage" | "Warrior" | "Cowboy";
-type MentorState = "idle" | "encouraging" | "disappointed" | "celebrating";
+export type MentorArchetype = "Mage" | "Warrior" | "Cowboy";
+export type MentorState =
+  | "idle"
+  | "encouraging"
+  | "disappointed"
+  | "celebrating"
+  | "thinking";
 
 export interface MentorProfileProps {
   name: string;

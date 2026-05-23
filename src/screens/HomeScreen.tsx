@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -9,22 +9,33 @@ import {
   Platform,
   TouchableOpacity,
   RefreshControl,
+  Keyboard,
 } from "react-native";
-import { SafeAreaView as RNCSafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { removeToken } from "../auth/storage";
-import { AntDesign, Ionicons } from "@expo/vector-icons";
+import {
+  AntDesign,
+  Ionicons,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
 import MentorChat from "../components/MentorChat";
 import HabitBoard from "../components/HabitBoard";
 import HabitForm from "../components/HabitForm";
 import QuestBoard from "../components/QuestBoard";
 import AchievementsModal from "../components/AchievementsModal";
 import { DBUserAchievement } from "../components/types/AchievementsModal.types";
+import { MentorState } from "../components/types/MentorProfile.types";
 import AdaptiveLayout from "../components/AdaptiveLayout";
 import LevelIndicator from "../components/LevelIndicator";
+import Card from "../components/Card";
 import { theme } from "../theme";
 import * as habitApi from "../api/habit";
 import * as authApi from "../api/auth";
 import * as questApi from "../api/quest";
+import * as aiApi from "../api/ai";
 
 interface HomeScreenProps {
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
@@ -33,49 +44,120 @@ interface HomeScreenProps {
   };
 }
 
-export default function HomeScreen({ setToken, navigation }: HomeScreenProps) {
+type TabType = "chat" | "board" | "profile";
+
+export default function HomeScreen({
+  setToken,
+  navigation: _navigation,
+}: HomeScreenProps) {
+  const insets = useSafeAreaInsets();
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // Tab State
+  const [activeTab, setActiveTab] = useState<TabType>("board");
+
+  // Sidebar & Modals
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [message, setMessage] = useState("");
-  const [habits, setHabits] = useState<habitApi.Habit[]>([]);
-  const [quests, setQuests] = useState<questApi.Quest[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isQuestsLoading, setIsQuestsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isAchievementsVisible, setIsAchievementsVisible] = useState(false);
-  const [unlockedAchievements, setUnlockedAchievements] = useState<
-    DBUserAchievement[]
-  >([]);
-
-  // User Stats
-  const [xp, setXp] = useState(450);
-  const [level, setLevel] = useState(5);
-  const maxXp = 1000;
-  const [questsCompletedCount, setQuestsCompletedCount] = useState(12);
-  const streak = 3;
-
-  // Form State
   const [isFormVisible, setIsFormVisible] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingHabit, setEditingHabit] = useState<
     habitApi.Habit | undefined
   >();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Chat State
+  const [message, setMessage] = useState("");
+  const [chatMessages, setChatMessages] = useState<aiApi.ChatMessage[]>([
+    {
+      role: "model",
+      parts:
+        "Greetings, Traveler. How can Merlin assist you on your quest today?",
+    },
+  ]);
+  const [isMentorLoading, setIsMentorLoading] = useState(false);
+  const [transientState, setTransientState] = useState<MentorState | null>(
+    null,
+  );
+
+  // Data State
+  const [habits, setHabits] = useState<habitApi.Habit[]>([]);
+  const [quests, setQuests] = useState<questApi.Quest[]>([]);
+  const [unlockedAchievements, setUnlockedAchievements] = useState<
+    DBUserAchievement[]
+  >([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isQuestsLoading, setIsQuestsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // User Stats
+  const [xp, setXp] = useState(0);
+  const [level, setLevel] = useState(1);
+  const [questsCompletedCount, setQuestsCompletedCount] = useState(0);
+  const [streak, _setStreak] = useState(0);
+  const [attributes, setAttributes] = useState({
+    strength: 10,
+    intelligence: 10,
+    dexterity: 10,
+    spirit: 10,
+  });
 
   useEffect(() => {
-    fetchHabits();
-    fetchQuests();
-    fetchProfile();
+    onRefresh();
   }, []);
+
+  // Auto-scroll chat to bottom
+  useEffect(() => {
+    if (activeTab === "chat" && chatMessages.length > 1) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [chatMessages, activeTab]);
+
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    await Promise.all([fetchHabits(), fetchQuests(), fetchProfile()]);
+    setIsRefreshing(false);
+  };
+
+  const getMerlinState = (): MentorState => {
+    if (isMentorLoading) return "thinking";
+    if (transientState) return transientState;
+    if (streak >= 7) return "celebrating";
+    if (
+      streak === 0 &&
+      habits.length > 0 &&
+      habits.some((h) => !h.isCompletedToday)
+    )
+      return "disappointed";
+    return "idle";
+  };
+
+  const triggerTransientState = (
+    state: MentorState,
+    duration: number = 3000,
+  ) => {
+    setTransientState(state);
+    setTimeout(() => setTransientState(null), duration);
+  };
 
   const fetchProfile = async () => {
     try {
       const user = await authApi.getProfile();
-      if (user.currentXp !== undefined && user.level !== undefined) {
-        setXp(user.currentXp);
-        setLevel(user.level);
-      }
-      if (user.achievements !== undefined) {
+      if (user.currentXp !== undefined) setXp(user.currentXp);
+      if (user.level !== undefined) setLevel(user.level);
+      if (user.achievements !== undefined)
         setUnlockedAchievements(user.achievements);
-      }
+
+      setAttributes({
+        strength: user.strength ?? 10,
+        intelligence: user.intelligence ?? 10,
+        dexterity: user.dexterity ?? 10,
+        spirit: user.spirit ?? 10,
+      });
+
+      // Mock streak for testing
+      _setStreak(8);
     } catch (err) {
       console.error("Failed to fetch profile:", err);
     }
@@ -89,7 +171,6 @@ export default function HomeScreen({ setToken, navigation }: HomeScreenProps) {
       console.error("Failed to fetch habits:", err);
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
   };
 
@@ -97,10 +178,9 @@ export default function HomeScreen({ setToken, navigation }: HomeScreenProps) {
     try {
       const data = await questApi.getQuests();
       setQuests(data);
-      const completedCount = data.filter(
-        (q) => q.status === "COMPLETED",
-      ).length;
-      setQuestsCompletedCount(completedCount);
+      setQuestsCompletedCount(
+        data.filter((q) => q.status === "COMPLETED").length,
+      );
     } catch (err) {
       console.error("Failed to fetch quests:", err);
     } finally {
@@ -108,44 +188,40 @@ export default function HomeScreen({ setToken, navigation }: HomeScreenProps) {
     }
   };
 
-  const onRefresh = () => {
-    setIsRefreshing(true);
-    fetchHabits();
-    fetchQuests();
+  const handleSendMessage = async () => {
+    if (!message.trim()) return;
+
+    const userMessage = message.trim();
+    setMessage("");
+    Keyboard.dismiss();
+
+    const newUserMsg: aiApi.ChatMessage = { role: "user", parts: userMessage };
+    setChatMessages((prev) => [...prev, newUserMsg]);
+
+    try {
+      setIsMentorLoading(true);
+      const history = chatMessages.slice(-9);
+      const data = await aiApi.mentorChat(userMessage, history);
+      setChatMessages((prev) => [
+        ...prev,
+        { role: "model", parts: data.response },
+      ]);
+    } catch (err) {
+      console.error("Mentor chat error:", err);
+    } finally {
+      setIsMentorLoading(false);
+    }
   };
 
-  const onLogout = async () => {
-    await removeToken();
-    setToken(null);
-  };
-
-  const onViewProfile = () => {
-    setIsSidebarOpen(false);
-    navigation.navigate("Profile");
-  };
-
-  const handleCheckIn = async (habitId: number, reward: number) => {
+  const handleCheckIn = async (habitId: number, _reward: number) => {
     try {
       await habitApi.checkInHabit(habitId);
-
-      // Update local state for immediate feedback
       setHabits((prev) =>
         prev.map((h) =>
           h.id === habitId ? { ...h, isCompletedToday: true } : h,
         ),
       );
-
-      // Calculate level ups (immediate local feedback)
-      setXp((prev) => {
-        const newXp = prev + reward;
-        if (newXp >= maxXp) {
-          setLevel((l) => l + 1);
-          return newXp - maxXp;
-        }
-        return newXp;
-      });
-
-      // Synchronize stats and achievements with database source of truth
+      triggerTransientState("encouraging");
       await fetchProfile();
     } catch (err) {
       console.error("Failed to check in:", err);
@@ -154,26 +230,12 @@ export default function HomeScreen({ setToken, navigation }: HomeScreenProps) {
 
   const handleCompleteQuest = async (id: number) => {
     try {
-      setIsQuestsLoading(true);
       await questApi.updateQuest(id, { status: "COMPLETED" });
+      triggerTransientState("celebrating");
       await fetchQuests();
       await fetchProfile();
     } catch (err) {
       console.error("Failed to complete quest:", err);
-    } finally {
-      setIsQuestsLoading(false);
-    }
-  };
-
-  const handleDeleteQuest = async (id: number) => {
-    try {
-      setIsQuestsLoading(true);
-      await questApi.deleteQuest(id);
-      await fetchQuests();
-    } catch (err) {
-      console.error("Failed to delete quest:", err);
-    } finally {
-      setIsQuestsLoading(false);
     }
   };
 
@@ -185,16 +247,12 @@ export default function HomeScreen({ setToken, navigation }: HomeScreenProps) {
     setIsSubmitting(true);
     try {
       if (editingHabit) {
-        const updated = await habitApi.updateHabit(editingHabit.id, data);
-        setHabits((prev) =>
-          prev.map((h) => (h.id === editingHabit.id ? updated : h)),
-        );
+        await habitApi.updateHabit(editingHabit.id, data);
       } else {
-        const created = await habitApi.createHabit(data);
-        setHabits((prev) => [...prev, created]);
+        await habitApi.createHabit(data);
       }
+      fetchHabits();
       setIsFormVisible(false);
-      setEditingHabit(undefined);
     } catch (err) {
       console.error("Failed to save habit:", err);
     } finally {
@@ -202,64 +260,56 @@ export default function HomeScreen({ setToken, navigation }: HomeScreenProps) {
     }
   };
 
-  const handleEditHabit = (habit: habitApi.Habit) => {
-    setEditingHabit(habit);
-    setIsFormVisible(true);
-  };
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "chat":
+        return (
+          <View style={styles.tabContainer}>
+            <ScrollView
+              ref={scrollViewRef}
+              style={styles.scrollContent}
+              contentContainerStyle={styles.scrollContainer}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <MentorChat
+                messages={chatMessages}
+                isLoading={isMentorLoading}
+                state={getMerlinState()}
+              />
+            </ScrollView>
 
-  const handleArchiveHabit = async (habitId: number) => {
-    try {
-      await habitApi.deleteHabit(habitId);
-      setHabits((prev) => prev.filter((h) => h.id !== habitId));
-    } catch (err) {
-      console.error("Failed to archive habit:", err);
-    }
-  };
-
-  return (
-    <AdaptiveLayout
-      isSidebarOpen={isSidebarOpen}
-      setIsSidebarOpen={setIsSidebarOpen}
-      onLogout={onLogout}
-      onViewProfile={onViewProfile}
-      username="Traveler"
-      rank="Novice Adventurer"
-      level={level}
-      xp={xp}
-      maxXp={maxXp}
-      streak={streak}
-      questsCompleted={questsCompletedCount}
-    >
-      <RNCSafeAreaView style={styles.safeArea}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.container}
-        >
-          {/* Header */}
-          <View style={styles.header}>
-            <LevelIndicator level={level} xp={xp} maxXp={maxXp} />
-            <View style={styles.headerButtons}>
+            <View style={[styles.inputArea, { paddingBottom: 16 }]}>
+              <TextInput
+                style={styles.input}
+                placeholder="Talk to Merlin..."
+                placeholderTextColor={theme.colors.textSecondary}
+                value={message}
+                onChangeText={setMessage}
+                onSubmitEditing={handleSendMessage}
+              />
               <TouchableOpacity
-                style={styles.trophyButton}
-                onPress={() => setIsAchievementsVisible(true)}
-                activeOpacity={0.7}
+                style={[
+                  styles.sendButton,
+                  !message.trim() && styles.sendButtonDisabled,
+                ]}
+                disabled={!message.trim()}
+                onPress={handleSendMessage}
               >
-                <Ionicons name="trophy" size={18} color={theme.colors.accent} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.avatarTrigger}
-                onPress={() => setIsSidebarOpen(true)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.avatarEmoji}>🤠</Text>
+                <AntDesign
+                  name="arrow-up"
+                  size={20}
+                  color={theme.colors.white}
+                />
               </TouchableOpacity>
             </View>
           </View>
-
+        );
+      case "board":
+        return (
           <ScrollView
             style={styles.scrollContent}
             contentContainerStyle={styles.scrollContainer}
-            showsVerticalScrollIndicator={false}
             refreshControl={
               <RefreshControl
                 refreshing={isRefreshing}
@@ -268,8 +318,6 @@ export default function HomeScreen({ setToken, navigation }: HomeScreenProps) {
               />
             }
           >
-            <MentorChat message="Greetings, Traveler. Today's path is clear. To progress in your journey, you must focus on the task at hand." />
-
             <HabitBoard
               habits={habits}
               isLoading={isLoading}
@@ -278,82 +326,225 @@ export default function HomeScreen({ setToken, navigation }: HomeScreenProps) {
                 setIsFormVisible(true);
               }}
               onCheckIn={handleCheckIn}
-              onEditHabit={handleEditHabit}
-              onArchiveHabit={handleArchiveHabit}
+              onEditHabit={(h) => {
+                setEditingHabit(h);
+                setIsFormVisible(true);
+              }}
+              onArchiveHabit={(id) =>
+                habitApi.deleteHabit(id).then(fetchHabits)
+              }
             />
-
             <QuestBoard
               quests={quests}
               isLoading={isQuestsLoading}
-              onAddQuest={() => {
-                // For now, let's just create a dummy quest to test the UI
+              onAddQuest={() =>
                 questApi
-                  .createQuest({
-                    title: "Slay the Procrastination Dragon",
-                    description: "Complete 3 complex tasks before noon.",
-                    xpReward: 350,
-                    goldReward: 100,
-                  })
-                  .then(() => fetchQuests());
-              }}
+                  .createQuest({ title: "New Adventure", xpReward: 100 })
+                  .then(fetchQuests)
+              }
               onCompleteQuest={handleCompleteQuest}
-              onDeleteQuest={handleDeleteQuest}
+              onDeleteQuest={(id) => questApi.deleteQuest(id).then(fetchQuests)}
             />
           </ScrollView>
-
-          {/* Chat / Command Input Area */}
-          <View style={styles.inputArea}>
-            <TextInput
-              style={styles.input}
-              placeholder="Talk to Merlin..."
-              placeholderTextColor={theme.colors.textSecondary}
-              value={message}
-              onChangeText={setMessage}
-            />
+        );
+      case "profile":
+        const attributeList: Array<{
+          label: string;
+          value: number;
+          icon: React.ComponentProps<typeof MaterialCommunityIcons>["name"];
+          color: string;
+        }> = [
+          {
+            label: "Strength",
+            value: attributes.strength,
+            icon: "arm-flex",
+            color: theme.colors.error,
+          },
+          {
+            label: "Intelligence",
+            value: attributes.intelligence,
+            icon: "brain",
+            color: theme.colors.primary,
+          },
+          {
+            label: "Dexterity",
+            value: attributes.dexterity,
+            icon: "run-fast",
+            color: theme.colors.secondary,
+          },
+          {
+            label: "Spirit",
+            value: attributes.spirit,
+            icon: "auto-fix",
+            color: theme.colors.success,
+          },
+        ];
+        return (
+          <ScrollView
+            style={styles.scrollContent}
+            contentContainerStyle={styles.profileContainer}
+          >
+            <View style={styles.characterHeader}>
+              <View style={styles.avatarLarge}>
+                <Text style={styles.avatarEmojiLarge}>🤠</Text>
+              </View>
+              <Text style={styles.usernameLarge}>Traveler</Text>
+              <Text style={styles.rankLarge}>Novice Adventurer</Text>
+            </View>
+            <View style={styles.levelSection}>
+              <LevelIndicator level={level} xp={xp} maxXp={1000} />
+            </View>
+            <Text style={styles.sectionTitle}>Attributes</Text>
+            <View style={styles.attributesGrid}>
+              {attributeList.map((attr, i) => (
+                <Card key={i} style={styles.attributeCard}>
+                  <View
+                    style={[
+                      styles.iconContainer,
+                      { backgroundColor: attr.color + "22" },
+                    ]}
+                  >
+                    <MaterialCommunityIcons
+                      name={attr.icon}
+                      size={24}
+                      color={attr.color}
+                    />
+                  </View>
+                  <Text style={styles.attributeLabel}>{attr.label}</Text>
+                  <Text style={[styles.attributeValue, { color: attr.color }]}>
+                    {attr.value}
+                  </Text>
+                </Card>
+              ))}
+            </View>
             <TouchableOpacity
-              style={[
-                styles.sendButton,
-                !message.trim() && styles.sendButtonDisabled,
-              ]}
-              disabled={!message.trim()}
-              activeOpacity={0.7}
+              style={styles.logoutTabButton}
+              onPress={async () => {
+                await removeToken();
+                setToken(null);
+              }}
             >
-              <AntDesign name="arrow-up" size={20} color={theme.colors.white} />
+              <AntDesign name="logout" size={18} color={theme.colors.error} />
+              <Text style={styles.logoutTabText}>Log Out</Text>
             </TouchableOpacity>
+          </ScrollView>
+        );
+    }
+  };
+
+  return (
+    <AdaptiveLayout
+      isSidebarOpen={isSidebarOpen}
+      setIsSidebarOpen={setIsSidebarOpen}
+      onLogout={async () => {
+        await removeToken();
+        setToken(null);
+      }}
+      onViewProfile={() => {
+        setIsSidebarOpen(false);
+        setActiveTab("profile");
+      }}
+      username="Traveler"
+      rank="Novice Adventurer"
+      level={level}
+      xp={xp}
+      maxXp={1000}
+      streak={streak}
+      questsCompleted={questsCompletedCount}
+    >
+      <SafeAreaView style={styles.safeArea} edges={["top"]}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.container}
+        >
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>
+              {activeTab === "chat"
+                ? "Merlin"
+                : activeTab === "board"
+                  ? "Quests"
+                  : "Character"}
+            </Text>
+            <View style={styles.headerButtons}>
+              <TouchableOpacity
+                style={styles.trophyButton}
+                onPress={() => setIsAchievementsVisible(true)}
+              >
+                <Ionicons name="trophy" size={18} color={theme.colors.accent} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.avatarTrigger}
+                onPress={() => setIsSidebarOpen(true)}
+              >
+                <Text style={styles.avatarEmoji}>🤠</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.mainArea}>{renderTabContent()}</View>
+
+          <View
+            style={[
+              styles.tabBar,
+              { paddingBottom: Math.max(insets.bottom, 8) },
+            ]}
+          >
+            {(
+              [
+                { id: "chat", icon: "chat", label: "Merlin" },
+                { id: "board", icon: "sword-cross", label: "Board" },
+                { id: "profile", icon: "account", label: "Profile" },
+              ] as const
+            ).map((tab) => (
+              <TouchableOpacity
+                key={tab.id}
+                style={styles.tabItem}
+                onPress={() => setActiveTab(tab.id as TabType)}
+              >
+                <MaterialCommunityIcons
+                  name={tab.icon}
+                  size={26}
+                  color={
+                    activeTab === tab.id
+                      ? theme.colors.primary
+                      : theme.colors.textSecondary
+                  }
+                />
+                <Text
+                  style={[
+                    styles.tabLabel,
+                    activeTab === tab.id && styles.activeTabLabel,
+                  ]}
+                >
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </KeyboardAvoidingView>
 
-        {/* Habit Creation/Edit Modal */}
         <HabitForm
           isVisible={isFormVisible}
-          onClose={() => {
-            setIsFormVisible(false);
-            setEditingHabit(undefined);
-          }}
+          onClose={() => setIsFormVisible(false)}
           onSubmit={handleFormSubmit}
           initialData={editingHabit}
           isSubmitting={isSubmitting}
         />
-
-        {/* Achievements Modal */}
         <AchievementsModal
           isVisible={isAchievementsVisible}
           onClose={() => setIsAchievementsVisible(false)}
           unlockedAchievements={unlockedAchievements}
         />
-      </RNCSafeAreaView>
+      </SafeAreaView>
     </AdaptiveLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  container: {
-    flex: 1,
-  },
+  safeArea: { flex: 1, backgroundColor: theme.colors.background },
+  container: { flex: 1 },
+  mainArea: { flex: 1 },
+  tabContainer: { flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -364,10 +555,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
   },
-  headerButtons: {
-    flexDirection: "row",
-    alignItems: "center",
+  headerTitle: {
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: theme.typography.sizes.h4,
+    color: theme.colors.primary,
+    letterSpacing: 1,
   },
+  headerButtons: { flexDirection: "row", alignItems: "center" },
   trophyButton: {
     width: 40,
     height: 40,
@@ -379,9 +573,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: theme.spacing.sm,
   },
-  spacer: {
-    width: 40,
-  },
   avatarTrigger: {
     width: 40,
     height: 40,
@@ -392,21 +583,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  avatarEmoji: {
-    fontSize: 18,
-  },
-  headerTitle: {
-    fontFamily: theme.typography.fonts.bold,
-    fontSize: theme.typography.sizes.h4,
-    color: theme.colors.primary,
-    letterSpacing: 1,
-  },
-  scrollContent: {
-    flex: 1,
-  },
-  scrollContainer: {
-    paddingBottom: theme.spacing.lg,
-  },
+  avatarEmoji: { fontSize: 18 },
+  scrollContent: { flex: 1 },
+  scrollContainer: { paddingBottom: theme.spacing.lg },
   inputArea: {
     flexDirection: "row",
     padding: theme.spacing.md,
@@ -422,8 +601,6 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.card,
     borderRadius: theme.borderRadius.xl,
     paddingHorizontal: theme.spacing.lg,
-    fontFamily: theme.typography.fonts.regular,
-    fontSize: theme.typography.sizes.body,
     color: theme.colors.text,
   },
   sendButton: {
@@ -434,8 +611,99 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  sendButtonDisabled: {
-    backgroundColor: theme.colors.border,
-    opacity: 0.5,
+  sendButtonDisabled: { backgroundColor: theme.colors.border, opacity: 0.5 },
+  tabBar: {
+    flexDirection: "row",
+    backgroundColor: theme.colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+    paddingTop: theme.spacing.sm,
+  },
+  tabItem: { flex: 1, alignItems: "center", justifyContent: "center", gap: 2 },
+  tabLabel: {
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: 10,
+    color: theme.colors.textSecondary,
+  },
+  activeTabLabel: { color: theme.colors.primary },
+  profileContainer: { paddingBottom: theme.spacing.xl },
+  characterHeader: { alignItems: "center", marginVertical: theme.spacing.lg },
+  avatarLarge: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 3,
+    borderColor: theme.colors.accent,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: theme.spacing.md,
+  },
+  avatarEmojiLarge: { fontSize: 40 },
+  usernameLarge: {
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: theme.typography.sizes.h2,
+    color: theme.colors.text,
+  },
+  rankLarge: {
+    fontFamily: theme.typography.fonts.regular,
+    fontSize: theme.typography.sizes.body,
+    color: theme.colors.accent,
+    letterSpacing: 1,
+  },
+  levelSection: { marginBottom: theme.spacing.xl },
+  sectionTitle: {
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: theme.typography.sizes.h4,
+    color: theme.colors.text,
+    marginLeft: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+  },
+  attributesGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    paddingHorizontal: theme.spacing.sm,
+    justifyContent: "space-between",
+  },
+  attributeCard: {
+    width: "47%",
+    marginBottom: theme.spacing.md,
+    alignItems: "center",
+    padding: theme.spacing.md,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: theme.spacing.sm,
+  },
+  attributeLabel: {
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+  },
+  attributeValue: {
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: theme.typography.sizes.h3,
+    marginTop: 2,
+  },
+  logoutTabButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: theme.spacing.xl,
+    marginTop: theme.spacing.lg,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.error,
+    gap: theme.spacing.sm,
+    backgroundColor: theme.colors.error + "11",
+  },
+  logoutTabText: {
+    fontFamily: theme.typography.fonts.bold,
+    color: theme.colors.error,
   },
 });

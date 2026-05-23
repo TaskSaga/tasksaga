@@ -1,18 +1,64 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import MentorProfile from "./MentorProfile";
 import { theme } from "../theme";
+import { ChatMessage } from "../api/ai";
+import { MentorState } from "./types/MentorProfile.types";
 
 interface MentorChatProps {
-  message: string;
+  messages: ChatMessage[];
+  isLoading?: boolean;
+  state?: MentorState;
 }
 
-export default function MentorChat({ message }: MentorChatProps) {
+export default function MentorChat({
+  messages,
+  isLoading,
+  state = "idle",
+}: MentorChatProps) {
+  // We only show the last 5-10 messages as per requirements
+  const displayedMessages = messages.slice(-10);
+
   return (
     <View style={styles.mentorSection}>
-      <MentorProfile name="Merlin" archetype="Mage" state="idle" />
-      <View style={styles.messageBubble}>
-        <Text style={styles.messageText}>{message}</Text>
+      <MentorProfile
+        name="Merlin"
+        archetype="Mage"
+        state={isLoading ? "thinking" : state}
+      />
+
+      <View style={styles.chatContainer}>
+        {displayedMessages.map((msg, index) => (
+          <View
+            key={index}
+            style={[
+              styles.messageBubble,
+              msg.role === "user" ? styles.userBubble : styles.mentorBubble,
+            ]}
+          >
+            <Text
+              style={[
+                styles.messageText,
+                msg.role === "user" ? styles.userText : styles.mentorText,
+              ]}
+            >
+              {msg.parts}
+            </Text>
+          </View>
+        ))}
+
+        {isLoading && (
+          <View
+            style={[
+              styles.messageBubble,
+              styles.mentorBubble,
+              styles.loadingBubble,
+            ]}
+          >
+            <ActivityIndicator size="small" color={theme.colors.accent} />
+            <Text style={styles.loadingText}>Consulting the stars...</Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -26,20 +72,52 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.border,
     backgroundColor: "#ffffff05",
   },
+  chatContainer: {
+    width: "100%",
+    paddingHorizontal: theme.spacing.xl,
+    marginTop: -theme.spacing.sm,
+    gap: theme.spacing.sm,
+  },
   messageBubble: {
-    backgroundColor: theme.colors.surface,
     padding: theme.spacing.md,
     borderRadius: theme.borderRadius.lg,
-    marginHorizontal: theme.spacing.xl,
-    marginTop: -theme.spacing.sm,
     borderWidth: 1,
+    maxWidth: "90%",
+  },
+  mentorBubble: {
+    backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
+    alignSelf: "center",
+  },
+  userBubble: {
+    backgroundColor: theme.colors.primary + "20",
+    borderColor: theme.colors.primary + "40",
+    alignSelf: "flex-end",
   },
   messageText: {
     fontFamily: theme.typography.fonts.regular,
     fontSize: theme.typography.sizes.body,
+    lineHeight: 22,
+  },
+  mentorText: {
     color: theme.colors.text,
-    lineHeight: 24,
     textAlign: "center",
+  },
+  userText: {
+    color: theme.colors.primary,
+    textAlign: "right",
+  },
+  loadingBubble: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: theme.spacing.sm,
+    alignSelf: "center",
+    minWidth: 200,
+  },
+  loadingText: {
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: theme.typography.sizes.small,
+    color: theme.colors.textSecondary,
   },
 });

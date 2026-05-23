@@ -17,6 +17,14 @@ export default function MentorProfile({
     Cowboy: theme.colors.accent,
   };
 
+  const stateEmojis = {
+    idle: "🧙",
+    encouraging: "✨",
+    disappointed: "🧐",
+    celebrating: "🎉",
+    thinking: "🔮",
+  };
+
   return (
     <View style={styles.container}>
       <View
@@ -26,7 +34,7 @@ export default function MentorProfile({
         ]}
       >
         <Text style={styles.stateText}>{state.toUpperCase()}</Text>
-        <Text style={styles.placeholderIcon}>👤</Text>
+        <Text style={styles.placeholderIcon}>{stateEmojis[state] || "👤"}</Text>
       </View>
       <View style={styles.textContainer}>
         <Text style={styles.name}>{name}</Text>
