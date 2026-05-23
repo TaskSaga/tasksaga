@@ -6,7 +6,6 @@ import WelcomeScreen from "../screens/WelcomeScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import VerifyScreen from "../screens/VerifyScreen";
 import HomeScreen from "../screens/HomeScreen";
-import ProfileScreen from "../screens/ProfileScreen";
 import { useEffect, useState } from "react";
 
 const Stack = createNativeStackNavigator();
@@ -35,12 +34,9 @@ export default function AppNavigator({
       <StatusBar style="light" />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {token ? (
-          <>
-            <Stack.Screen name="Home">
-              {(props) => <HomeScreen {...props} setToken={setToken} />}
-            </Stack.Screen>
-            <Stack.Screen name="Profile" component={ProfileScreen} />
-          </>
+          <Stack.Screen name="Home">
+            {(props) => <HomeScreen {...props} setToken={setToken} />}
+          </Stack.Screen>
         ) : (
           <>
             <Stack.Screen name="Welcome">
