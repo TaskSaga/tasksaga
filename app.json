@@ -2,7 +2,10 @@
   "expo": {
     "name": "TaskSaga",
     "slug": "tasksaga",
-    "scheme": "tasksaga",
+    "scheme": [
+      "tasksaga",
+      "com.googleusercontent.apps.477138754514-d2qt7ir2vatav5ecf3v9dhvquj1eihp2"
+    ],
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
