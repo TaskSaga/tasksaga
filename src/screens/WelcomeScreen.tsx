@@ -1,8 +1,12 @@
-import { View, Text, StyleSheet } from "react-native";
-import { useState } from "react";
+import { View, Text, StyleSheet, Platform, Alert } from "react-native";
+import { useState, useEffect } from "react";
+import { googleLogin } from "../api/auth";
+import { saveToken } from "../auth/storage";
 import { AntDesign } from "@expo/vector-icons";
 import { ParamListBase } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import * as Google from "expo-auth-session/providers/google";
+import * as AuthSession from "expo-auth-session";
 import { useAppleAuth } from "../hooks/useAppleAuth";
 import { theme } from "../theme";
 import Button from "../components/Button";
@@ -21,6 +25,60 @@ export default function WelcomeScreen({
 }: WelcomeScreenProps) {
   const [identifier, setIdentifier] = useState("");
   const { isAvailable, handleAppleAuth } = useAppleAuth(setToken);
+
+  const redirectUri = AuthSession.makeRedirectUri({
+    scheme:
+      "com.googleusercontent.apps.477138754514-d2qt7ir2vatav5ecf3v9dhvquj1eihp2",
+  });
+  console.log("Мой Redirect URI:", redirectUri);
+
+  const [_request, response, _promptAsync] = Google.useIdTokenAuthRequest({
+    iosClientId:
+      "477138754514-d2qt7ir2vatav5ecf3v9dhvquj1eihp2.apps.googleusercontent.com",
+
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+    redirectUri,
+  });
+
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { id_token } = response.params;
+      handleGoogleLogin(id_token);
+    }
+  }, [response]);
+
+  useEffect(() => {
+    if (Platform.OS === "web") {
+      const hash = window.location.hash;
+      if (hash) {
+        const params = new URLSearchParams(hash.substring(1));
+        const id_token = params.get("id_token");
+        if (id_token) {
+          handleGoogleLogin(id_token);
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname,
+          );
+        }
+      }
+    }
+  }, []);
+
+  const handleGoogleLogin = async (id_token: string) => {
+    try {
+      const res = await googleLogin(id_token);
+      if (res.access_token) {
+        await saveToken(res.access_token);
+        setToken(res.access_token);
+      } else {
+        Alert.alert("Error", res.detail ?? "Google login failed");
+      }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Server error";
+      Alert.alert("Error", errorMessage);
+    }
+  };
 
   if (!fontsLoaded) return null;
 
@@ -54,7 +112,7 @@ export default function WelcomeScreen({
         title="Continue with Google"
         variant="secondary"
         icon={<AntDesign name="google" size={20} color={theme.colors.white} />}
-        onPress={() => {}}
+        onPress={() => _promptAsync()}
         style={styles.socialButton}
       />
 

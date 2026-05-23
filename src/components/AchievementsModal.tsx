@@ -6,9 +6,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { theme } from "../theme";
 import { AchievementsModalProps } from "./types/AchievementsModal.types";
 import { ACHIEVEMENTS_METADATA, AchievementRarity } from "./types/achievements";

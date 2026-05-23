@@ -127,7 +127,7 @@ export default function LoginScreen({
         title="Sign In with Google"
         variant="secondary"
         icon={<AntDesign name="google" size={20} color={theme.colors.white} />}
-        onPress={() => Alert.alert("Notice", "Google login triggered")}
+        onPress={() => _promptAsync()}
         style={styles.socialButton}
       />
 
