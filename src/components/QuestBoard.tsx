@@ -9,15 +9,7 @@ import {
 import { theme } from "../theme";
 import { Ionicons } from "@expo/vector-icons";
 import QuestCard from "./QuestCard";
-import { Quest } from "../api/quest";
-
-interface QuestBoardProps {
-  quests: Quest[];
-  isLoading: boolean;
-  onAddQuest: () => void;
-  onCompleteQuest: (id: number) => void;
-  onDeleteQuest: (id: number) => void;
-}
+import { QuestBoardProps } from "./types/QuestBoard.types";
 
 export default function QuestBoard({
   quests,

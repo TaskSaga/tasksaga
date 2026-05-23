@@ -2,22 +2,7 @@ import React from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
 import { theme } from "../theme";
 import SidebarMenu from "./SidebarMenu";
-
-interface AdaptiveLayoutProps {
-  isSidebarOpen: boolean;
-  setIsSidebarOpen: (isOpen: boolean) => void;
-  onLogout: () => void;
-  onViewProfile: () => void;
-  children: React.ReactNode;
-  // User profile data for Sidebar
-  username: string;
-  rank: string;
-  level: number;
-  xp: number;
-  maxXp: number;
-  streak: number;
-  questsCompleted: number;
-}
+import { AdaptiveLayoutProps } from "./types/AdaptiveLayout.types";
 
 export default function AdaptiveLayout({
   isSidebarOpen,

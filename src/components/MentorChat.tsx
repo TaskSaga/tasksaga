@@ -2,14 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import MentorProfile from "./MentorProfile";
 import { theme } from "../theme";
-import { ChatMessage } from "../api/ai";
-import { MentorState } from "./types/MentorProfile.types";
-
-interface MentorChatProps {
-  messages: ChatMessage[];
-  isLoading?: boolean;
-  state?: MentorState;
-}
+import { MentorChatProps } from "./types/MentorChat.types";
 
 export default function MentorChat({
   messages,

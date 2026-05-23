@@ -13,21 +13,10 @@ import * as authApi from "../api/auth";
 import LevelIndicator from "../components/LevelIndicator";
 import Card from "../components/Card";
 
-interface ProfileData {
-  username: string;
-  level: number;
-  currentXp: number;
-  strength: number;
-  intelligence: number;
-  dexterity: number;
-  spirit: number;
-}
-
-interface ProfileScreenProps {
-  navigation: {
-    goBack: () => void;
-  };
-}
+import {
+  ProfileData,
+  ProfileScreenProps,
+} from "../components/types/ProfileScreen.types";
 
 export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const [profile, setProfile] = useState<ProfileData | null>(null);
