@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontFamily: theme.typography.fonts.bold,
-    fontSize: theme.typography.sizes.h5,
+    fontSize: theme.typography.sizes.h4,
     color: theme.colors.text,
     marginBottom: theme.spacing.md,
   },
