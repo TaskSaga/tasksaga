@@ -30,7 +30,6 @@ export default function WelcomeScreen({
     scheme:
       "com.googleusercontent.apps.477138754514-d2qt7ir2vatav5ecf3v9dhvquj1eihp2",
   });
-  console.log("Мой Redirect URI:", redirectUri);
 
   const [_request, response, _promptAsync] = Google.useIdTokenAuthRequest({
     iosClientId:
