@@ -25,6 +25,8 @@ import MentorChat from "../components/MentorChat";
 import HabitBoard from "../components/HabitBoard";
 import HabitForm from "../components/HabitForm";
 import QuestBoard from "../components/QuestBoard";
+import ShopBoard from "../components/ShopBoard";
+import BossBoard from "../components/BossBoard";
 import AchievementsModal from "../components/AchievementsModal";
 import { DBUserAchievement } from "../components/types/AchievementsModal.types";
 import { MentorState } from "../components/types/MentorProfile.types";
@@ -36,6 +38,8 @@ import * as habitApi from "../api/habit";
 import * as authApi from "../api/auth";
 import * as questApi from "../api/quest";
 import * as aiApi from "../api/ai";
+import * as shopApi from "../api/shop";
+import * as bossApi from "../api/boss";
 
 interface HomeScreenProps {
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
@@ -44,7 +48,7 @@ interface HomeScreenProps {
   };
 }
 
-type TabType = "chat" | "board" | "profile";
+type TabType = "chat" | "board" | "shop" | "profile";
 
 export default function HomeScreen({
   setToken,
@@ -82,16 +86,22 @@ export default function HomeScreen({
   // Data State
   const [habits, setHabits] = useState<habitApi.Habit[]>([]);
   const [quests, setQuests] = useState<questApi.Quest[]>([]);
+  const [bosses, setBosses] = useState<bossApi.Boss[]>([]);
+  const [shopItems, setShopItems] = useState<shopApi.Item[]>([]);
+  const [inventory, setInventory] = useState<shopApi.UserItem[]>([]);
   const [unlockedAchievements, setUnlockedAchievements] = useState<
     DBUserAchievement[]
   >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isQuestsLoading, setIsQuestsLoading] = useState(true);
+  const [isBossesLoading, setIsBossesLoading] = useState(true);
+  const [isShopLoading, setIsShopLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // User Stats
   const [xp, setXp] = useState(0);
   const [level, setLevel] = useState(1);
+  const [gold, setGold] = useState(0);
   const [questsCompletedCount, setQuestsCompletedCount] = useState(0);
   const [streak, _setStreak] = useState(0);
   const [attributes, setAttributes] = useState({
@@ -116,7 +126,18 @@ export default function HomeScreen({
 
   const onRefresh = async () => {
     setIsRefreshing(true);
-    await Promise.all([fetchHabits(), fetchQuests(), fetchProfile()]);
+    try {
+      await bossApi.checkBossAttacks();
+    } catch (err) {
+      console.error("Failed to check boss attacks:", err);
+    }
+    await Promise.all([
+      fetchHabits(),
+      fetchQuests(),
+      fetchProfile(),
+      fetchShopData(),
+      fetchBosses(),
+    ]);
     setIsRefreshing(false);
   };
 
@@ -146,6 +167,7 @@ export default function HomeScreen({
       const user = await authApi.getProfile();
       if (user.currentXp !== undefined) setXp(user.currentXp);
       if (user.level !== undefined) setLevel(user.level);
+      if (user.gold !== undefined) setGold(user.gold);
       if (user.achievements !== undefined)
         setUnlockedAchievements(user.achievements);
 
@@ -188,6 +210,34 @@ export default function HomeScreen({
     }
   };
 
+  const fetchBosses = async () => {
+    try {
+      setIsBossesLoading(true);
+      const data = await bossApi.getBosses();
+      setBosses(data);
+    } catch (err) {
+      console.error("Failed to fetch bosses:", err);
+    } finally {
+      setIsBossesLoading(false);
+    }
+  };
+
+  const fetchShopData = async () => {
+    try {
+      setIsShopLoading(true);
+      const [items, userInventory] = await Promise.all([
+        shopApi.getShopItems(),
+        shopApi.getInventory(),
+      ]);
+      setShopItems(items);
+      setInventory(userInventory);
+    } catch (err) {
+      console.error("Failed to fetch shop data:", err);
+    } finally {
+      setIsShopLoading(false);
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!message.trim()) return;
 
@@ -223,6 +273,7 @@ export default function HomeScreen({
       );
       triggerTransientState("encouraging");
       await fetchProfile();
+      await fetchBosses();
     } catch (err) {
       console.error("Failed to check in:", err);
     }
@@ -236,6 +287,25 @@ export default function HomeScreen({
       await fetchProfile();
     } catch (err) {
       console.error("Failed to complete quest:", err);
+    }
+  };
+
+  const handlePurchase = async (itemId: number) => {
+    try {
+      await shopApi.purchaseItem(itemId);
+      await Promise.all([fetchProfile(), fetchShopData()]);
+      triggerTransientState("celebrating");
+    } catch (err) {
+      console.error("Failed to purchase item:", err);
+    }
+  };
+
+  const handleEquip = async (userItemId: number) => {
+    try {
+      await shopApi.equipItem(userItemId);
+      await fetchShopData();
+    } catch (err) {
+      console.error("Failed to equip item:", err);
     }
   };
 
@@ -318,6 +388,7 @@ export default function HomeScreen({
               />
             }
           >
+            <BossBoard bosses={bosses} isLoading={isBossesLoading} />
             <HabitBoard
               habits={habits}
               isLoading={isLoading}
@@ -344,6 +415,29 @@ export default function HomeScreen({
               }
               onCompleteQuest={handleCompleteQuest}
               onDeleteQuest={(id) => questApi.deleteQuest(id).then(fetchQuests)}
+            />
+          </ScrollView>
+        );
+      case "shop":
+        return (
+          <ScrollView
+            style={styles.scrollContent}
+            contentContainerStyle={styles.scrollContainer}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={onRefresh}
+                tintColor={theme.colors.primary}
+              />
+            }
+          >
+            <ShopBoard
+              items={shopItems}
+              inventory={inventory}
+              userGold={gold}
+              onPurchase={handlePurchase}
+              onEquip={handleEquip}
+              isLoading={isShopLoading}
             />
           </ScrollView>
         );
@@ -463,7 +557,9 @@ export default function HomeScreen({
                 ? "Merlin"
                 : activeTab === "board"
                   ? "Quests"
-                  : "Character"}
+                  : activeTab === "shop"
+                    ? "Shop"
+                    : "Character"}
             </Text>
             <View style={styles.headerButtons}>
               <TouchableOpacity
@@ -493,6 +589,7 @@ export default function HomeScreen({
               [
                 { id: "chat", icon: "chat", label: "Merlin" },
                 { id: "board", icon: "sword-cross", label: "Board" },
+                { id: "shop", icon: "store", label: "Shop" },
                 { id: "profile", icon: "account", label: "Profile" },
               ] as const
             ).map((tab) => (
@@ -528,6 +625,7 @@ export default function HomeScreen({
           onClose={() => setIsFormVisible(false)}
           onSubmit={handleFormSubmit}
           initialData={editingHabit}
+          bosses={bosses}
           isSubmitting={isSubmitting}
         />
         <AchievementsModal

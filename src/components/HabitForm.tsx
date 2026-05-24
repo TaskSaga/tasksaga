@@ -8,11 +8,12 @@ import {
   TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from "react-native";
 import { theme } from "../theme";
 import Button from "./Button";
 import Input from "./Input";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
 import { HabitFormProps } from "./types/HabitForm.types";
 
 export default function HabitForm({
@@ -20,21 +21,25 @@ export default function HabitForm({
   onClose,
   onSubmit,
   initialData,
+  bosses = [],
   isSubmitting,
 }: HabitFormProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [xpReward, setXpReward] = useState("100");
+  const [bossId, setBossId] = useState<number | undefined>();
 
   useEffect(() => {
     if (initialData) {
       setTitle(initialData.title);
       setDescription(initialData.description || "");
       setXpReward(initialData.xpReward.toString());
+      setBossId(initialData.bossId);
     } else {
       setTitle("");
       setDescription("");
       setXpReward("100");
+      setBossId(undefined);
     }
   }, [initialData, isVisible]);
 
@@ -44,6 +49,7 @@ export default function HabitForm({
       title: title.trim(),
       description: description.trim() || undefined,
       xpReward: parseInt(xpReward) || 100,
+      bossId,
     });
   };
 
@@ -97,6 +103,58 @@ export default function HabitForm({
                   keyboardType="numeric"
                 />
 
+                <Text style={styles.label}>Link to Boss</Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.bossList}
+                >
+                  <TouchableOpacity
+                    style={[
+                      styles.bossItem,
+                      bossId === undefined && styles.bossItemActive,
+                    ]}
+                    onPress={() => setBossId(undefined)}
+                  >
+                    <Text
+                      style={[
+                        styles.bossItemText,
+                        bossId === undefined && styles.bossItemTextActive,
+                      ]}
+                    >
+                      None
+                    </Text>
+                  </TouchableOpacity>
+                  {bosses.map((boss) => (
+                    <TouchableOpacity
+                      key={boss.id}
+                      style={[
+                        styles.bossItem,
+                        bossId === boss.id && styles.bossItemActive,
+                      ]}
+                      onPress={() => setBossId(boss.id)}
+                    >
+                      <MaterialCommunityIcons
+                        name="sword-cross"
+                        size={14}
+                        color={
+                          bossId === boss.id
+                            ? theme.colors.white
+                            : theme.colors.error
+                        }
+                      />
+                      <Text
+                        style={[
+                          styles.bossItemText,
+                          bossId === boss.id && styles.bossItemTextActive,
+                        ]}
+                      >
+                        {boss.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+
                 <Button
                   title={initialData ? "Update Habit" : "Create Habit"}
                   onPress={handleSubmit}
@@ -142,6 +200,41 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.fonts.bold,
     fontSize: theme.typography.sizes.h4,
     color: theme.colors.text,
+  },
+  label: {
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.xs,
+    marginTop: theme.spacing.sm,
+  },
+  bossList: {
+    flexDirection: "row",
+    marginBottom: theme.spacing.md,
+  },
+  bossItem: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    marginRight: theme.spacing.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  bossItemActive: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  bossItemText: {
+    fontFamily: theme.typography.fonts.regular,
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+  },
+  bossItemTextActive: {
+    color: theme.colors.white,
+    fontFamily: theme.typography.fonts.bold,
   },
   submitButton: {
     marginTop: theme.spacing.lg,
