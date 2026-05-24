@@ -7,6 +7,9 @@ export interface AuthResponse {
   message?: string;
   currentXp?: number;
   level?: number;
+  gold?: number;
+  hp?: number;
+  maxHp?: number;
   strength?: number;
   intelligence?: number;
   dexterity?: number;

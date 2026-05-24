@@ -1,19 +1,15 @@
 import { getToken } from "../auth/storage";
 
-const API_URL = "http://192.168.1.194:8000/habit";
+const API_URL = "http://192.168.1.194:8000/boss";
 
-export interface Habit {
+export interface Boss {
   id: number;
-  title: string;
+  name: string;
   description?: string;
-  xpReward: number;
-  goldReward: number;
-  bossId?: number;
-  isArchived: boolean;
-  isCompletedToday: boolean;
-  userId: number;
-  createdAt: string;
-  updatedAt: string;
+  maxHp: number;
+  currentHp: number;
+  rewardGold: number;
+  rewardXp: number;
 }
 
 async function getAuthHeaders() {
@@ -37,19 +33,21 @@ async function handleResponse(res: Response) {
   }
 }
 
-export const getHabits = async (): Promise<Habit[]> => {
+export const getBosses = async (): Promise<Boss[]> => {
   const res = await fetch(API_URL, {
     headers: await getAuthHeaders(),
   });
   return handleResponse(res);
 };
 
-export const createHabit = async (data: {
-  title: string;
-  description?: string;
-  xpReward?: number;
-  bossId?: number;
-}): Promise<Habit> => {
+export const getBoss = async (id: number): Promise<Boss> => {
+  const res = await fetch(`${API_URL}/${id}`, {
+    headers: await getAuthHeaders(),
+  });
+  return handleResponse(res);
+};
+
+export const createBoss = async (data: Partial<Boss>): Promise<Boss> => {
   const res = await fetch(API_URL, {
     method: "POST",
     headers: await getAuthHeaders(),
@@ -58,28 +56,11 @@ export const createHabit = async (data: {
   return handleResponse(res);
 };
 
-export const updateHabit = async (
-  id: number,
-  data: Partial<Habit>,
-): Promise<Habit> => {
-  const res = await fetch(`${API_URL}/${id}`, {
-    method: "PATCH",
-    headers: await getAuthHeaders(),
-    body: JSON.stringify(data),
-  });
-  return handleResponse(res);
-};
-
-export const deleteHabit = async (id: number): Promise<Habit> => {
-  const res = await fetch(`${API_URL}/${id}`, {
-    method: "DELETE",
-    headers: await getAuthHeaders(),
-  });
-  return handleResponse(res);
-};
-
-export const checkInHabit = async (id: number): Promise<Habit> => {
-  const res = await fetch(`${API_URL}/${id}/check-in`, {
+export const checkBossAttacks = async (): Promise<{
+  totalDamage: number;
+  checked: boolean;
+}> => {
+  const res = await fetch(`${API_URL}/check-attacks`, {
     method: "POST",
     headers: await getAuthHeaders(),
   });

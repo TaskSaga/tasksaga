@@ -1,4 +1,5 @@
 import { Habit } from "../../api/habit";
+import { Boss } from "../../api/boss";
 
 export interface HabitFormProps {
   isVisible: boolean;
@@ -7,7 +8,9 @@ export interface HabitFormProps {
     title: string;
     description?: string;
     xpReward?: number;
+    bossId?: number;
   }) => void;
   initialData?: Habit;
+  bosses?: Boss[];
   isSubmitting?: boolean;
 }
