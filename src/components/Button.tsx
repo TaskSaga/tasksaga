@@ -74,6 +74,7 @@ export default function Button({
 
   return (
     <TouchableOpacity
+      accessibilityRole="button"
       style={[
         styles.baseContainer,
         variantStyles.container,
